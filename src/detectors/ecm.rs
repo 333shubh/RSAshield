@@ -18,7 +18,7 @@ use num_bigint::{BigUint, RandBigInt};
 use num_traits::{One, Zero};
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
-use std::time::Instant;
+use crate::clock::Instant;
 
 #[inline]
 fn mulm(a: &BigUint, b: &BigUint, n: &BigUint) -> BigUint {

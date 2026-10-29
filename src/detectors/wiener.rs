@@ -10,7 +10,7 @@ use crate::key::RsaPublicKey;
 use crate::mathutil::is_perfect_square;
 use num_bigint::BigUint;
 use num_traits::{One, Zero};
-use std::time::Instant;
+use crate::clock::Instant;
 
 pub fn run(key: &RsaPublicKey) -> Signal {
     let start = Instant::now();

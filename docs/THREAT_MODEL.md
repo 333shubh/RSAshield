@@ -71,6 +71,20 @@ protection, certificate trust/revocation, and protocol-level issues.
   Google Fonts when online (falling back to system fonts when not). This reveals only that
   a page was opened; no key material ever leaves the machine.
 
+## Hosted website (in-browser engine)
+
+- **Keys never leave the visitor's device.** The public site is static files; auditing
+  runs in a Web Worker on the same Rust code compiled to WebAssembly. There is no backend
+  to receive, log or store keys, and the Content-Security-Policy (`web/vercel.json`) limits
+  network access to the site's own origin (plus Google Fonts stylesheets/fonts).
+- **Private keys are refused twice.** The page will not send text containing private-key
+  markers to the engine at all, and the engine independently refuses such input
+  (`key::looks_like_private_key`), so a mistaken paste is neither analysed nor stored.
+- **Session-only.** Audited keys live in the worker's memory and disappear when the tab
+  closes.
+- **No abuse surface.** All computation happens on the visitor's own CPU, so the hosted
+  site cannot be overloaded by expensive requests.
+
 ## What a clean result does and does not mean
 
 RSAShield has **no "secure" verdict**. The strongest negative result is

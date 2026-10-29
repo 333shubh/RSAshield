@@ -13,7 +13,7 @@ use crate::key::RsaPublicKey;
 use crate::mathutil::gcd;
 use num_bigint::BigUint;
 use num_traits::One;
-use std::time::Instant;
+use crate::clock::Instant;
 
 /// Result of a corpus-level shared-factor scan.
 pub struct BatchGcdResult {

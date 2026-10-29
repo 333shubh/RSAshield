@@ -41,7 +41,7 @@
           <div class="head-copy" data-reveal>
             <p class="eyebrow">Audit console</p>
             <h1>Audit a Key</h1>
-            <p class="lead-left">Paste a PEM public key or a hex <code>modulus:exponent</code> pair &mdash; or a whole list. Every detector runs on this machine; nothing is sent anywhere else.</p>
+            <p class="lead-left">Paste an RSA public key, certificate or <code>ssh-rsa</code> line &mdash; or a whole list &mdash; and find out if it was badly generated. Every detector runs on your own device; your key is never uploaded.</p>
           </div>
           <svg class="head-art" data-scene="step2" viewBox="-215 -215 430 345" aria-hidden="true"></svg>
         </div>
@@ -50,9 +50,10 @@
 
     <div class="offline-banner" id="offline" hidden>
       <div class="offline-inner">
-        <strong>The audit server isn&rsquo;t running.</strong>
-        Start it from the project folder with <code>cargo run --release -- serve</code>, then open
-        <a href="http://127.0.0.1:8080/dashboard">127.0.0.1:8080/dashboard</a>.
+        <strong>The audit engine couldn&rsquo;t start.</strong>
+        It runs in your browser (WebAssembly) when this page is served over HTTP(S) &mdash; opening the file
+        directly doesn&rsquo;t allow that. Use the hosted site, or run <code>cargo run --release -- serve</code>
+        and open <a href="http://127.0.0.1:8080/dashboard">127.0.0.1:8080/dashboard</a>.
       </div>
     </div>
 
@@ -63,15 +64,18 @@
           <div class="panel" data-reveal>
             <div class="panel-head">
               <h2>Input</h2>
-              <span class="hint">PEM, DER-in-PEM, or hex n:e &middot; one key per line</span>
+              <span class="hint">PEM key or certificate, ssh-rsa, or hex n:e &middot; one per line</span>
             </div>
             <label class="sr-only" for="keyInput">Public key(s)</label>
-            <textarea id="keyInput" spellcheck="false" autocomplete="off" placeholder="-----BEGIN PUBLIC KEY-----&#10;MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA…&#10;-----END PUBLIC KEY-----&#10;&#10;or  c0ffee…:10001"></textarea>
+            <textarea id="keyInput" spellcheck="false" autocomplete="off" placeholder="-----BEGIN PUBLIC KEY-----&#10;MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA…&#10;-----END PUBLIC KEY-----&#10;&#10;or a certificate (-----BEGIN CERTIFICATE-----)&#10;or  ssh-rsa AAAAB3NzaC1yc2E… you@laptop&#10;or  c0ffee…:10001"></textarea>
             <div class="row">
               <button class="btn btn-primary" id="auditBtn" type="button">Audit Key</button>
               <button class="btn btn-ghost" id="clearInput" type="button">Clear</button>
-              <span class="busy" id="auditBusy" hidden><span class="spinner"></span>Running detectors…</span>
+              <label class="check" title="Spend the full CLI detector budget; slower on 2048-bit and larger keys"><input id="deep" type="checkbox"> Deep scan</label>
+              <span class="busy" id="auditBusy" hidden><span class="spinner"></span><span id="auditBusyText">Running detectors…</span></span>
             </div>
+            <p class="note" id="budgetNote"></p>
+            <p class="privacy" id="privacyNote"></p>
 
             <div class="samples">
               <div class="panel-sub">
