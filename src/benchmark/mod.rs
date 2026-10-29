@@ -4,6 +4,7 @@
 //!
 //! Ground truth (private factors and defect labels) lives only here, in the harness.
 
+pub mod ecm_study;
 pub mod evaluate;
 pub mod generate;
 

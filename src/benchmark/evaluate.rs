@@ -22,6 +22,10 @@ pub struct Metrics {
     pub f1: f64,
     pub false_positive_rate: f64,
     pub secure_labels_emitted: usize,
+    /// Highest risk score assigned to any healthy key (0 is ideal separation).
+    pub healthy_score_max: u32,
+    /// Lowest risk score assigned to any defective key.
+    pub defective_score_min: u32,
     pub per_class_recall: BTreeMap<String, (usize, usize)>, // class -> (detected, total)
     pub batch_gcd_pairs: usize,
     pub batch_gcd_keys_flagged: usize,
@@ -67,6 +71,8 @@ pub fn run_benchmark(spec: &CorpusSpec, seed: u64) -> (Metrics, Corpus) {
     let mut fn_ = 0usize;
     let mut tn = 0usize;
     let mut secure_labels = 0usize;
+    let mut healthy_score_max = 0u32;
+    let mut defective_score_min = 100u32;
     let mut per_class: BTreeMap<String, (usize, usize)> = BTreeMap::new();
 
     for (i, signals) in per_key_signals.iter().enumerate() {
@@ -76,6 +82,11 @@ pub fn run_benchmark(spec: &CorpusSpec, seed: u64) -> (Metrics, Corpus) {
         // invariant: the scorer must never emit a "secure" classification
         if assessment.classification.as_str().eq_ignore_ascii_case("secure") {
             secure_labels += 1;
+        }
+        if class.is_defective() {
+            defective_score_min = defective_score_min.min(assessment.risk_score);
+        } else {
+            healthy_score_max = healthy_score_max.max(assessment.risk_score);
         }
 
         if class.is_defective() {
@@ -116,6 +127,8 @@ pub fn run_benchmark(spec: &CorpusSpec, seed: u64) -> (Metrics, Corpus) {
         f1,
         false_positive_rate: fpr,
         secure_labels_emitted: secure_labels,
+        healthy_score_max,
+        defective_score_min,
         per_class_recall: per_class,
         batch_gcd_pairs: bg.pairs_compared,
         batch_gcd_keys_flagged: bg.keys_affected,
@@ -139,6 +152,12 @@ pub fn format_metrics(m: &Metrics) -> String {
         m.precision, m.recall, m.f1, m.false_positive_rate
     ));
     s.push_str(&format!("'secure' labels emitted: {} (must be 0 by design)\n", m.secure_labels_emitted));
+    s.push_str(&format!(
+        "risk-score separation: healthy <= {}, defective >= {} (margin {})\n",
+        m.healthy_score_max,
+        m.defective_score_min,
+        m.defective_score_min as i64 - m.healthy_score_max as i64
+    ));
     s.push_str(&format!(
         "batch GCD: {} pairs compared, {} keys flagged with shared primes\n",
         m.batch_gcd_pairs, m.batch_gcd_keys_flagged

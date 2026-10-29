@@ -1,5 +1,6 @@
 /target
 /bench-out
+/demo-out
 *.log
 # local reference media (design references, not project source)
 *.mp4
