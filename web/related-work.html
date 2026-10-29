@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Related Work — RSAShield</title>
+  <meta name="description" content="Prior work on weak RSA keys — Heninger et al., ROCA, batch GCD, badkeys — and the gaps RSAShield addresses.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="console.css">
+</head>
+<body>
+
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="RSAShield home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5l11 4.4v8.2c0 7.1-4.7 12-11 14.4C9.7 27.1 5 22.2 5 15.1V6.9z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="16" cy="15.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="16" cy="15.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>RSAShield</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Overview</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="related-work.html" aria-current="page">Related Work</a>
+      </nav>
+      <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head framed">
+      <div class="frame">
+        <div class="head-inner">
+          <div class="head-copy" data-reveal>
+            <p class="eyebrow">Related work</p>
+            <h1>Standing on Known Results</h1>
+            <p class="lead-left">The detectors are textbook. What RSAShield adds is a labelled benchmark, a bounded role for ECM, an honest risk model and an ICS framing &mdash; set against the work below.</p>
+          </div>
+          <svg class="head-art" data-scene="step3" viewBox="-215 -240 430 365" aria-hidden="true"></svg>
+        </div>
+      </div>
+    </section>
+
+    <section class="stored framed">
+      <div class="frame">
+        <div class="section-head" data-reveal>
+          <div>
+            <h2>Prior Work</h2>
+            <p>Papers, advisories and tools this project builds on or deliberately does not over-claim against.</p>
+          </div>
+        </div>
+        <div class="rw-list">
+          <article class="rw" data-reveal>
+            <span class="tag">Measurement study</span>
+            <h3>Mining Your Ps and Qs: Detection of Widespread Weak Keys in Network Devices</h3>
+            <p class="src">Heninger, Durumeric, Wustrow, Halderman &middot; USENIX Security 2012</p>
+            <p>Internet-wide scans found many embedded devices sharing RSA primes because they generated keys with too little entropy at first boot. RSAShield's batch-GCD detector and its headless-device threat model come straight from this result.</p>
+            <a href="https://factorable.net/paper.html">factorable.net &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">Structured primes</span>
+            <h3>The Return of Coppersmith's Attack (ROCA)</h3>
+            <p class="src">Nemec, Sýs, Švenda, Klinec, Matyáš &middot; CCS 2017 &middot; CVE-2017-15361</p>
+            <p>A widely deployed library generated primes with recognisable structure, making keys fingerprintable and factorable. It motivates the &ldquo;structured prime&rdquo; failure mode and the vendor-advisory remediation path.</p>
+            <a href="https://crocs.fi.muni.cz/public/papers/rsa_ccs17">Paper &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">Algorithm</span>
+            <h3>Batch GCD with product and remainder trees</h3>
+            <p class="src">Bernstein &middot; quasi-linear all-pairs GCD</p>
+            <p>Finds every shared prime across N moduli without comparing all pairs one by one. RSAShield implements the tree form and checks it against the naïve pairwise version in its tests.</p>
+            <a href="https://facthacks.cr.yp.to/">facthacks.cr.yp.to &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">Algorithm</span>
+            <h3>An Efficient All-to-All GCD Algorithm for Low-Entropy RSA Key Factorization</h3>
+            <p class="src">arXiv:2405.03166</p>
+            <p>Recent work on scaling all-to-all GCD, relevant to the fleet-size scaling question (RQ4) and to auditing large device inventories.</p>
+            <a href="https://arxiv.org/abs/2405.03166">arXiv &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">Industry study</span>
+            <h3>Factoring RSA Keys in the IoT Era</h3>
+            <p class="src">Keyfactor &middot; 75 million certificates</p>
+            <p>A large-scale certificate study showing shared-factor keys remain common in IoT. It confirms the problem persists, but like other scan studies it has no labelled ground truth.</p>
+            <a href="https://keyfactor.com/resources/factoring-rsa-keys-in-the-iot-era">Report &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">Tool</span>
+            <h3>badkeys</h3>
+            <p class="src">Hanno Böck</p>
+            <p>Checks keys against known vulnerabilities &mdash; Debian OpenSSL, shared factors, ROCA, Fermat. Combining detectors is therefore not new; RSAShield does not claim it is.</p>
+            <a href="https://badkeys.info/">badkeys.info &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">Tool</span>
+            <h3>RSAPubKeyHealth</h3>
+            <p class="src">3BK &middot; Rust</p>
+            <p>Covers size policy, exponent sanity, entropy tests, small-factor, Fermat, shared-factor, Wiener and compliance mapping &mdash; but no ECM, no ICS framing and no reproducible benchmark.</p>
+            <a href="https://github.com/3BK/RSAPubKeyHealth">GitHub &rarr;</a>
+          </article>
+          <article class="rw" data-reveal>
+            <span class="tag">ICS precedent</span>
+            <h3>CISA ICSA-13-217-01 &middot; weak DSA key entropy in Moxa devices</h3>
+            <p class="src">CISA ICS advisory</p>
+            <p>An industrial-device advisory on keys generated with insufficient entropy &mdash; precedent that the failure mode occurs in exactly the environments RSAShield targets.</p>
+            <a href="https://www.cisa.gov/news-events/ics-advisories/icsa-13-217-01">Advisory &rarr;</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="bundle framed">
+      <div class="frame">
+        <div class="section-head" data-reveal>
+          <div>
+            <h2>The Gaps RSAShield Fills</h2>
+            <p>From the project's gap analysis &mdash; each row is a measurable contribution, not a new algorithm.</p>
+          </div>
+        </div>
+        <div class="table-wrap gap-table" data-reveal>
+          <table>
+            <thead>
+              <tr><th scope="col">#</th><th scope="col">Gap in existing tools &amp; literature</th><th scope="col">What RSAShield adds</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>G1</td><td>Tools detect, but almost none ship a controlled benchmark with ground truth; scan studies have no labels.</td><td>A reproducible, fault-injected, labelled benchmark with per-detector precision, recall and runtime.</td></tr>
+              <tr><td>G2</td><td>ECM's role is usually hand-waved or omitted.</td><td>A bounded-ECM budget with a measured marginal-yield study.</td></tr>
+              <tr><td>G3</td><td>No tool frames findings for ICS / substation constraints.</td><td>Remediation context for long-lived grid keys, mapped to IEC 62351 and NERC CIP.</td></tr>
+              <tr><td>G4</td><td>Binary weak / not-weak output; some tools imply &ldquo;secure&rdquo;.</td><td>A multi-signal risk score that never labels a key secure &mdash; only &ldquo;no defect found under budget&rdquo;.</td></tr>
+              <tr><td>G5</td><td>No mapping from a positive signal to the generation defect that caused it.</td><td>A detector &rarr; failure-mode attribution that drives the remediation advice.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer framed">
+    <div class="frame">
+      <a class="brand brand-lg" href="index.html" aria-label="RSAShield home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5l11 4.4v8.2c0 7.1-4.7 12-11 14.4C9.7 27.1 5 22.2 5 15.1V6.9z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="16" cy="15.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="16" cy="15.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>RSAShield</span>
+      </a>
+      <nav class="footer-links" aria-label="Documentation">
+        <a href="index.html">Overview</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/RESEARCH_PLAN.md">Research plan</a>
+      </nav>
+      <p class="fine">&copy;<span data-year>2026</span> RSAShield. Synthetic keys and authorised data only.</p>
+    </div>
+  </footer>
+
+  <script src="iso.js"></script>
+  <script src="scenes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -198,7 +198,7 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
 }
 .cta-inner { position: relative; z-index: 1; width: 100%; max-width: var(--col); margin: 0 auto; padding: 60px 16px; }
 .cta h2 { font-size: clamp(36px, 4.6vw, 54px); line-height: 1.04; }
-.cta .btn { margin-top: 22px; }
+.actions-left { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
 .cta-art {
   position: absolute;
   top: 0;

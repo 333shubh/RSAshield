@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -26,9 +27,10 @@
         <a href="#how">How it Works</a>
         <a href="#detectors">Detectors</a>
         <a href="#why">ICS Standards</a>
-        <a href="#start">Get Started</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="related-work.html">Related Work</a>
       </nav>
-      <a class="btn btn-ghost btn-sm" href="#start">Audit a Key</a>
+      <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
     </div>
   </header>
 
@@ -42,8 +44,8 @@
             <h1 data-reveal>Turn Weak Keys<br>into Known Risks</h1>
             <p class="lead" data-reveal>Find shared primes, close primes, small factors and more &mdash; offline, with research-grade detectors and ICS-ready remediation.</p>
             <div class="actions" data-reveal>
-              <a class="btn btn-primary" href="#start">Audit a Key</a>
-              <a class="btn btn-ghost" href="#why">See Results</a>
+              <a class="btn btn-primary" href="dashboard.html">Audit a Key</a>
+              <a class="btn btn-ghost" href="dashboard.html#bundle">See Results</a>
             </div>
           </div>
         </div>
@@ -56,7 +58,7 @@
         <div class="step-copy" data-reveal>
           <h2><span class="num">01.</span> You Provide Public Keys</h2>
           <p>Drop in PEM, DER or hex moduli &mdash; one key or a whole fleet export. Everything stays offline; nothing touches a live OT network.</p>
-          <a class="btn btn-primary" href="#start">Audit a Key</a>
+          <a class="btn btn-primary" href="dashboard.html">Audit a Key</a>
         </div>
         <svg class="step-art" data-scene="step1" viewBox="-215 -240 430 365" aria-hidden="true" data-reveal></svg>
       </div>
@@ -74,7 +76,7 @@
         <div class="step-copy" data-reveal>
           <h2><span class="num">03.</span> You Get a Prioritised Report</h2>
           <p>A fused risk score, the failure mode, IEC 62351 / NERC CIP references and remediation steps &mdash; never a private factor, never a &ldquo;secure&rdquo; label.</p>
-          <a class="btn btn-primary" href="#why">See Results</a>
+          <a class="btn btn-primary" href="dashboard.html#bundle">See Results</a>
         </div>
         <svg class="step-art" data-scene="step3" viewBox="-215 -240 430 365" aria-hidden="true" data-reveal></svg>
       </div>
@@ -136,7 +138,7 @@
           </article>
         </div>
         <div class="center" data-reveal>
-          <a class="btn btn-primary" href="#start">Audit a Key</a>
+          <a class="btn btn-primary" href="dashboard.html">Audit a Key</a>
         </div>
       </div>
     </section>
@@ -146,7 +148,10 @@
       <div class="cta-inner">
         <div class="cta-copy" data-reveal>
           <h2>Ready to Audit<br>Your Key Fleet?</h2>
-          <a class="btn btn-primary" href="https://github.com/333shubh/RSAshield">Get the Code</a>
+          <div class="actions-left">
+            <a class="btn btn-primary" href="dashboard.html">Open the Dashboard</a>
+            <a class="btn btn-ghost" href="https://github.com/333shubh/RSAshield">Get the Code</a>
+          </div>
         </div>
       </div>
       <svg class="cta-art" data-scene="orbit" viewBox="0 0 560 460" preserveAspectRatio="xMinYMid slice" aria-hidden="true"></svg>
@@ -164,6 +169,8 @@
         <span>RSAShield</span>
       </a>
       <nav class="footer-links" aria-label="Documentation">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="related-work.html">Related work</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/THREAT_MODEL.md">Threat model</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/RESEARCH_PLAN.md">Research plan</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/ICS_REMEDIATION.md">ICS remediation</a>

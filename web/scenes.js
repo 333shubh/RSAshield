@@ -172,6 +172,12 @@
       if (t.stand) standing(at, 0, 0, 0, t.s, t.i);
       else tile(at, 0, 0, 0, t.s, t.i, t.ghost ? Object.assign({}, GHOST, { stroke: '#efc3ba', iconOpacity: 0.45 }) : {});
     });
+
+    // phones: frame the hub and its nearest tiles rather than shrinking the whole scene
+    const narrow = window.matchMedia('(max-width: 900px)');
+    const fit = () => svg.setAttribute('viewBox', narrow.matches ? '-330 -330 700 560' : '-560 -460 1120 700');
+    fit();
+    narrow.addEventListener('change', fit);
   }
 
   /* --------------------------------------------------------------- steps */

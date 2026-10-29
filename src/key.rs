@@ -86,6 +86,36 @@ fn clean_hex(s: &str) -> &str {
     s.strip_prefix("0x").unwrap_or(s)
 }
 
+/// Parse text holding many keys: PEM blocks and/or one hex `n:e` pair per line.
+/// Each record yields its own result; lines that are neither are ignored.
+pub fn parse_many(text: &str, source: &str) -> Vec<Result<RsaPublicKey, ParseError>> {
+    let mut out = Vec::new();
+    let mut buf = String::new();
+    let mut inside = false;
+    for line in text.lines() {
+        if line.contains("-----BEGIN") {
+            inside = true;
+            buf.clear();
+        }
+        if inside {
+            buf.push_str(line);
+            buf.push('\n');
+            if line.contains("-----END") {
+                inside = false;
+                let record = format!("{source}#{}", out.len());
+                out.push(parse_any(&buf, record));
+            }
+            continue;
+        }
+        let l = line.trim();
+        if l.contains(':') || l.contains(',') {
+            let record = format!("{source}#{}", out.len());
+            out.push(parse_any(l, record));
+        }
+    }
+    out
+}
+
 /// Decode a PEM block to its DER bytes.
 pub fn pem_to_der(pem: &str) -> Result<Vec<u8>, ParseError> {
     use base64::{engine::general_purpose::STANDARD, Engine};
