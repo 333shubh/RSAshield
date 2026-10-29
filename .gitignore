@@ -1,0 +1,4 @@
+/target
+/bench-out
+*.log
+# keep Cargo.lock committed (this crate ships a binary)
