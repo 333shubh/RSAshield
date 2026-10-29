@@ -1,0 +1,7 @@
+/target
+/bench-out
+*.log
+# local reference media (design references, not project source)
+*.mp4
+/image.png
+# keep Cargo.lock committed (this crate ships a binary)
