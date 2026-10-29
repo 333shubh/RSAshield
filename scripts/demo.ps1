@@ -25,3 +25,4 @@ Write-Host "`n== ECM marginal-yield study (budget vs detection vs cost) ==" -For
 & $bin study-ecm --seed 1 --bits 512
 
 Write-Host "`nDemo complete. Ground truth is in demo-out/manifest.json (harness only)." -ForegroundColor Green
+Write-Host "For the web dashboard run:  $bin serve   then open http://127.0.0.1:8080/dashboard" -ForegroundColor Cyan
