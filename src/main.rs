@@ -28,6 +28,7 @@ fn main() -> ExitCode {
         "audit" => cmd_audit(&args[1..]),
         "audit-corpus" => cmd_audit_corpus(&args[1..]),
         "bench" => cmd_bench(&args[1..]),
+        "study-ecm" => cmd_study_ecm(&args[1..]),
         "-h" | "--help" | "help" => {
             print_usage();
             ExitCode::SUCCESS
@@ -47,7 +48,8 @@ fn print_usage() {
          \trsashield audit <file|-> [--forensic]\n\
          \trsashield audit --hex \"<modulus_hex>:<exponent_hex>\" [--forensic]\n\
          \trsashield audit-corpus <file>\n\
-         \trsashield bench [--seed N] [--bits N] [--out DIR]\n",
+         \trsashield bench [--seed N] [--bits N] [--out DIR]\n\
+         \trsashield study-ecm [--seed N] [--bits N]\n",
         env!("CARGO_PKG_VERSION")
     );
 }
@@ -198,5 +200,17 @@ fn cmd_bench(args: &[String]) -> ExitCode {
         let _ = fs::write(format!("{dir}/metrics.json"), metrics_json);
         eprintln!("wrote {dir}/manifest.json (ground truth) and {dir}/metrics.json");
     }
+    ExitCode::SUCCESS
+}
+
+fn cmd_study_ecm(args: &[String]) -> ExitCode {
+    use rsashield::benchmark::ecm_study::{format_study, run_ecm_study};
+    let seed: u64 = opt(args, "--seed").and_then(|s| s.parse().ok()).unwrap_or(1);
+    let bits: u64 = opt(args, "--bits").and_then(|s| s.parse().ok()).unwrap_or(512);
+    let factor_sizes = [18u64, 22, 26, 30];
+    let budgets = [(500u64, 10u32), (2_000, 10), (5_000, 16), (10_000, 16)];
+    eprintln!("running ECM yield study (bits={bits}, seed={seed})...");
+    let study = run_ecm_study(bits, seed, &factor_sizes, &budgets, 6);
+    println!("{}", format_study(&study));
     ExitCode::SUCCESS
 }

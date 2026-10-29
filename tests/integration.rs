@@ -99,6 +99,15 @@ fn ecm_recovers_unbalanced_factor() {
 }
 
 #[test]
+fn ecm_yield_study_detects_small_factor_at_budget() {
+    use rsashield::benchmark::ecm_study::run_ecm_study;
+    // an 18-bit factor at a generous budget should be detected on every key
+    let study = run_ecm_study(256, 1, &[18], &[(5_000, 40)], 4);
+    assert_eq!(study.rows.len(), 1);
+    assert_eq!(study.rows[0].detection_rate, 1.0, "18-bit factor must be found at B1=5000/40 curves");
+}
+
+#[test]
 fn operator_report_has_no_private_factor() {
     // a broken key whose factor IS recovered; the operator report must not contain it
     let small = big("101");
