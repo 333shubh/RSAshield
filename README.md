@@ -88,7 +88,7 @@ The same data is available as JSON:
 |---|---|
 | `GET /health` | liveness probe |
 | `GET /api/samples` | seeded demo keys, one per defect class (plus a malformed PEM) |
-| `POST /api/audit` | audit the key(s) in the body and store them; `400` with a parse error on bad input |
+| `POST /api/audit[?budget=standard\|deep]` | audit the key(s) in the body and store them; `400` with a parse error on bad input or a private key |
 | `GET /api/keys` / `DELETE /api/keys` | list / clear the session's stored keys |
 | `GET /api/report/{id}` | operator report for one stored key |
 | `POST /api/batch-gcd` | tree batch GCD across all stored keys; findings fold back into their reports |
@@ -97,8 +97,30 @@ The same data is available as JSON:
 Like the CLI, the API returns operator reports only — no endpoint can carry a recovered
 factor. The UI is plain HTML/CSS/JS in [`web/`](web/) (no build step), embedded into the
 binary at compile time; its isometric illustrations are drawn at runtime by a small SVG kit
-(`web/iso.js`, `web/scenes.js`). Opening `web/index.html` directly also works for the
-overview page; the dashboard needs the server.
+(`web/iso.js`, `web/scenes.js`).
+
+**Accepted input:** PEM public keys (PKCS#1 or SPKI), X.509 certificates (the key is read
+from the certificate), OpenSSH `ssh-rsa` lines, and hex `modulus:exponent` pairs — one key
+or a list mixing formats. Non-RSA keys (EC, Ed25519) are named and rejected, and anything
+that looks like a **private** key is refused before it is parsed or stored.
+
+## Hosted website (runs in the browser)
+
+The public site is the same `web/` folder deployed as static files (Vercel config in
+[`web/vercel.json`](web/vercel.json)). There is no server: the dashboard loads
+`web/rsashield.wasm` — the same Rust API (`src/api.rs`) compiled to WebAssembly — into a
+Web Worker (`web/engine-worker.js`), so a visitor's key is **analysed inside their own
+browser tab and never uploaded**. The dashboard uses a local `rsashield serve` when one
+answers `/health`, and the in-browser engine otherwise.
+
+The browser defaults to a **standard** detector budget (ECM B1=2,000 × 8 curves, Fermat
+20k steps; still finds factors up to ~30 bits per the RQ2 study). **Deep scan** switches to
+the full CLI budget. Rebuild the engine after changing Rust code:
+
+```sh
+rustup target add wasm32-unknown-unknown   # once
+scripts/build-wasm.sh                      # or scripts/build-wasm.ps1 → web/rsashield.wasm
+```
 
 ## Status
 
@@ -117,7 +139,8 @@ positives, zero "secure" labels, and clean risk-score separation (healthy ≤ 10
 defective ≥ 100). Measured results: [`docs/RESULTS.md`](docs/RESULTS.md). ICS remediation
 mapping: [`docs/ICS_REMEDIATION.md`](docs/ICS_REMEDIATION.md). Run the walkthrough with
 `scripts/demo.ps1` (Windows) or `scripts/demo.sh`. Tests: `cargo test --release` (detector
-integration tests in `tests/integration.rs`, web API tests in `tests/server.rs`). Roadmap:
+integration tests in `tests/integration.rs`, web API tests in `tests/server.rs`, input
+formats / private-key refusal / browser budget in `tests/key_formats.rs`). Roadmap:
 [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
 
 ## License

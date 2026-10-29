@@ -13,7 +13,7 @@ use num_bigint::BigUint;
 use rand::SeedableRng;
 use rand_chacha::ChaCha20Rng;
 use serde::Serialize;
-use std::time::Instant;
+use crate::clock::Instant;
 
 #[derive(Serialize)]
 pub struct YieldRow {

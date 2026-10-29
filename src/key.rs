@@ -1,8 +1,10 @@
 //! RSA public-key model and input parsing.
 //!
-//! Supports hex `n:e`, PKCS#1 `RSAPublicKey`, and X.509 `SubjectPublicKeyInfo`
-//! in PEM or raw DER. Parsing is intentionally self-contained (a tiny DER reader)
-//! so the whole tool depends on one big-integer stack and the parse path is auditable.
+//! Supports hex `n:e`, PKCS#1 `RSAPublicKey`, X.509 `SubjectPublicKeyInfo`, X.509
+//! certificates (the key is taken from the certificate), all in PEM or raw DER, and
+//! OpenSSH `ssh-rsa` public keys. Parsing is intentionally self-contained (a tiny DER
+//! reader) so the whole tool depends on one big-integer stack and the parse path is
+//! auditable. Anything that looks like a private key is refused outright.
 
 use num_bigint::BigUint;
 use num_traits::Num;
@@ -59,10 +61,26 @@ fn err<T>(m: impl Into<String>) -> Result<T, ParseError> {
     Err(ParseError(m.into()))
 }
 
-/// Parse a key from a string: either `n:e` / `n,e` in hex, or a PEM block.
+/// Message returned whenever private-key material is pasted in.
+pub const PRIVATE_KEY_REFUSAL: &str = "This looks like a PRIVATE key. RSAShield only needs the public key \
+     — never paste a private key into any tool. Nothing was analysed or stored.";
+
+/// True if the text contains private-key material (PEM, OpenSSH or PuTTY formats).
+pub fn looks_like_private_key(input: &str) -> bool {
+    input.contains("PRIVATE KEY") || input.contains("PuTTY-User-Key-File")
+}
+
+/// Parse a key from a string: hex `n:e` / `n,e`, a PEM block (public key or
+/// certificate), or an OpenSSH `ssh-rsa` line.
 pub fn parse_any(input: &str, source: impl Into<String>) -> Result<RsaPublicKey, ParseError> {
     let source = source.into();
     let trimmed = input.trim();
+    if looks_like_private_key(trimmed) {
+        return err(PRIVATE_KEY_REFUSAL);
+    }
+    if let Some(rest) = trimmed.strip_prefix("ssh-") {
+        return parse_openssh(rest, source);
+    }
     if trimmed.contains("-----BEGIN") {
         let der = pem_to_der(trimmed)?;
         return parse_der(&der, source);
@@ -108,12 +126,43 @@ pub fn parse_many(text: &str, source: &str) -> Vec<Result<RsaPublicKey, ParseErr
             continue;
         }
         let l = line.trim();
-        if l.contains(':') || l.contains(',') {
+        if l.starts_with("ssh-") || l.starts_with("ecdsa-") || l.contains(':') || l.contains(',') {
             let record = format!("{source}#{}", out.len());
             out.push(parse_any(l, record));
         }
     }
     out
+}
+
+/// Parse the part of an OpenSSH public-key line after `ssh-`, e.g.
+/// `rsa AAAAB3NzaC1yc2E... user@host`. The base64 blob is the SSH wire format:
+/// string "ssh-rsa", mpint e, mpint n (RFC 4253 §6.6).
+fn parse_openssh(rest: &str, source: String) -> Result<RsaPublicKey, ParseError> {
+    use base64::{engine::general_purpose::STANDARD, Engine};
+    let mut fields = rest.split_whitespace();
+    let kind = fields.next().unwrap_or("");
+    if kind != "rsa" {
+        return err(format!("ssh-{kind} is not an RSA key; RSAShield audits RSA keys only"));
+    }
+    let blob = fields.next().ok_or_else(|| ParseError("ssh-rsa line has no key data".into()))?;
+    let raw = STANDARD
+        .decode(blob)
+        .map_err(|e| ParseError(format!("ssh-rsa base64 decode failed: {e}")))?;
+
+    let mut pos = 0usize;
+    let mut field = || -> Result<&[u8], ParseError> {
+        let len_bytes = raw.get(pos..pos + 4).ok_or_else(|| ParseError("ssh-rsa key data is truncated".into()))?;
+        let len = u32::from_be_bytes([len_bytes[0], len_bytes[1], len_bytes[2], len_bytes[3]]) as usize;
+        let value = raw.get(pos + 4..pos + 4 + len).ok_or_else(|| ParseError("ssh-rsa key data is truncated".into()))?;
+        pos += 4 + len;
+        Ok(value)
+    };
+    if field()? != b"ssh-rsa" {
+        return err("ssh-rsa key data does not start with the ssh-rsa type tag");
+    }
+    let e = BigUint::from_bytes_be(field()?);
+    let n = BigUint::from_bytes_be(field()?);
+    Ok(RsaPublicKey::new(n, e, source))
 }
 
 /// Decode a PEM block to its DER bytes.
@@ -228,12 +277,17 @@ pub fn parse_der(der: &[u8], source: impl Into<String>) -> Result<RsaPublicKey, 
     }
 
     if first_tag == TAG_SEQUENCE {
-        // SPKI: SEQUENCE { AlgorithmIdentifier SEQUENCE, subjectPublicKey BIT STRING }
-        let (_alg_tag, _alg) = inner.tlv()?; // skip AlgorithmIdentifier
+        let (_, first) = inner.tlv()?;
         let (bs_tag, bs) = inner.tlv()?;
+        if bs_tag == TAG_SEQUENCE {
+            // X.509 Certificate: SEQUENCE { tbsCertificate, signatureAlgorithm, signature }
+            return parse_der(spki_from_tbs(first)?, source);
+        }
+        // SPKI: SEQUENCE { AlgorithmIdentifier SEQUENCE, subjectPublicKey BIT STRING }
         if bs_tag != TAG_BIT_STRING {
             return err("SPKI subjectPublicKey is not a BIT STRING");
         }
+        check_rsa_algorithm(first)?;
         if bs.is_empty() {
             return err("SPKI BIT STRING is empty");
         }
@@ -243,4 +297,47 @@ pub fn parse_der(der: &[u8], source: impl Into<String>) -> Result<RsaPublicKey, 
     }
 
     err("unrecognised public-key DER structure")
+}
+
+const TAG_OID: u8 = 0x06;
+const TAG_CONTEXT_0: u8 = 0xA0;
+const OID_RSA_ENCRYPTION: &[u8] = &[0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01]; // 1.2.840.113549.1.1.1
+const OID_RSASSA_PSS: &[u8] = &[0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0a]; // 1.2.840.113549.1.1.10
+const OID_EC_PUBLIC_KEY: &[u8] = &[0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01]; // 1.2.840.10045.2.1
+const OID_ED25519: &[u8] = &[0x2b, 0x65, 0x70]; // 1.3.101.112
+
+/// Reject SPKI keys that are not RSA with a message naming what they are.
+fn check_rsa_algorithm(alg: &[u8]) -> Result<(), ParseError> {
+    let (tag, oid) = Der::new(alg).tlv()?;
+    if tag != TAG_OID {
+        return err("SPKI algorithm identifier has no OID");
+    }
+    if oid == OID_RSA_ENCRYPTION || oid == OID_RSASSA_PSS {
+        Ok(())
+    } else if oid == OID_EC_PUBLIC_KEY {
+        err("this is an elliptic-curve (EC) key; RSAShield audits RSA keys only")
+    } else if oid == OID_ED25519 {
+        err("this is an Ed25519 key; RSAShield audits RSA keys only")
+    } else {
+        err("this public key is not RSA; RSAShield audits RSA keys only")
+    }
+}
+
+/// Return the raw `subjectPublicKeyInfo` TLV from a TBSCertificate's contents:
+/// SEQUENCE { [0] version OPTIONAL, serialNumber, signature, issuer, validity,
+/// subject, subjectPublicKeyInfo, ... } (RFC 5280 §4.1).
+fn spki_from_tbs(tbs: &[u8]) -> Result<&[u8], ParseError> {
+    let mut r = Der::new(tbs);
+    if tbs.first() == Some(&TAG_CONTEXT_0) {
+        r.tlv()?; // explicit version
+    }
+    for _ in 0..5 {
+        r.tlv()?; // serialNumber, signature, issuer, validity, subject
+    }
+    let start = r.pos;
+    let (tag, _) = r.tlv()?;
+    if tag != TAG_SEQUENCE {
+        return err("certificate has no subjectPublicKeyInfo");
+    }
+    Ok(&tbs[start..r.pos])
 }

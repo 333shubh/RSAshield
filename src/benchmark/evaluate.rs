@@ -6,7 +6,7 @@ use super::DefectClass;
 use crate::detectors::{self, batch_gcd, DetectorConfig, Signal};
 use serde::Serialize;
 use std::collections::BTreeMap;
-use std::time::Instant;
+use crate::clock::Instant;
 
 #[derive(Serialize)]
 pub struct Metrics {

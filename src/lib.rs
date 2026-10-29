@@ -11,14 +11,19 @@
 //! - ECM is a planned *bounded* detector for small/unbalanced factors, not a universal
 //!   weak-key oracle; entropy failures are caught mainly by batch GCD and Fermat.
 
+pub mod api;
 pub mod benchmark;
+pub mod clock;
 pub mod detectors;
 pub mod key;
 pub mod mathutil;
 pub mod report;
 pub mod scoring;
+#[cfg(not(target_arch = "wasm32"))]
 pub mod server;
 pub mod standards;
+#[cfg(target_arch = "wasm32")]
+pub mod wasm;
 
 /// Convenience: run the per-key detector pipeline and fuse into an assessment.
 pub fn audit_single(

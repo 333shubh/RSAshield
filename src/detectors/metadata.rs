@@ -6,7 +6,7 @@ use super::{FailureMode, Signal, Verdict};
 use crate::key::RsaPublicKey;
 use num_bigint::BigUint;
 use num_traits::One;
-use std::time::Instant;
+use crate::clock::Instant;
 
 /// Minimum modulus size we treat as current policy (bits).
 const MIN_POLICY_BITS: u64 = 2048;

@@ -1,7 +1,8 @@
 /*
- * dashboard.js — the audit console. Talks only to the local rsashield server
- * (same origin). Every value from the server is written with textContent, never
- * parsed as HTML.
+ * dashboard.js — the audit console. It talks to one of two back ends with the same
+ * API: the local `rsashield serve` HTTP server, or (on the hosted site) the same Rust
+ * code compiled to WebAssembly and run in a worker, so keys never leave the device.
+ * Every value from the engine is written with textContent, never parsed as HTML.
  */
 (function () {
   'use strict';
@@ -22,21 +23,78 @@
     return n;
   }
 
-  async function api(method, path, body) {
+  /* -------------------------------------------------------------- engine */
+
+  let mode = null; // 'server' (local rsashield serve) | 'browser' (wasm worker)
+  let worker = null;
+  let seq = 0;
+  const pending = new Map();
+
+  function workerCall(method, path, body) {
+    return new Promise((resolve) => {
+      const id = ++seq;
+      pending.set(id, resolve);
+      worker.postMessage({ id, method, path, body: body || '' });
+    });
+  }
+
+  async function raw(method, path, body) {
+    if (mode === 'browser') {
+      const r = await workerCall(method, path, body);
+      return { ok: r.status >= 200 && r.status < 300, status: r.status, text: r.body };
+    }
     const res = await fetch(path, { method, body, headers: body ? { 'Content-Type': 'text/plain' } : undefined });
+    return { ok: res.ok, status: res.status, text: await res.text() };
+  }
+
+  async function api(method, path, body) {
+    const r = await raw(method, path, body);
     let data;
     try {
-      data = await res.json();
+      data = JSON.parse(r.text);
     } catch {
-      data = { error: `HTTP ${res.status}` };
+      data = { error: `HTTP ${r.status}` };
     }
-    if (!res.ok) {
-      const err = new Error(data.error || `HTTP ${res.status}`);
-      err.status = res.status;
+    if (!r.ok) {
+      const err = new Error(data.error || `HTTP ${r.status}`);
+      err.status = r.status;
       err.data = data;
       throw err;
     }
     return data;
+  }
+
+  // A local server answers /health; the hosted static site does not, so fall back to
+  // running the engine in this tab.
+  async function detectEngine() {
+    try {
+      const ctl = new AbortController();
+      const timer = setTimeout(() => ctl.abort(), 2500);
+      const res = await fetch('/health', { signal: ctl.signal, cache: 'no-store' });
+      clearTimeout(timer);
+      if (res.ok && (await res.json()).status === 'ok') {
+        mode = 'server';
+        return true;
+      }
+    } catch {
+      /* no local server */
+    }
+    try {
+      worker = new Worker('engine-worker.js');
+      worker.onmessage = (e) => {
+        const done = pending.get(e.data.id);
+        pending.delete(e.data.id);
+        if (done) done(e.data);
+      };
+      mode = 'browser';
+      await api('GET', '/health');
+      return true;
+    } catch {
+      if (worker) worker.terminate();
+      worker = null;
+      mode = null;
+      return false;
+    }
   }
 
   /* ------------------------------------------------------------ vocabulary */
@@ -80,21 +138,47 @@
   const status = $('#status');
   let online = false;
 
+  function setStored(n) {
+    const where = mode === 'browser' ? 'In your browser' : 'Local server';
+    status.querySelector('.status-text').textContent = `${where} · ${n} stored`;
+  }
+
   async function checkHealth() {
+    if (!mode) await detectEngine();
     try {
       const data = await api('GET', '/health');
       online = true;
       status.className = 'status ok';
-      status.querySelector('.status-text').textContent = `Online · ${data.stored_keys} stored`;
+      status.title =
+        mode === 'browser'
+          ? 'Detectors run in this tab (WebAssembly). Keys never leave your device.'
+          : 'Connected to the local rsashield server.';
+      setStored(data.stored_keys);
       $('#offline').hidden = true;
+      applyBudgets(data);
     } catch {
       online = false;
       status.className = 'status down';
-      status.querySelector('.status-text').textContent = 'Server offline';
+      status.querySelector('.status-text').textContent = 'Engine unavailable';
       $('#offline').hidden = false;
     }
     document.querySelectorAll('#auditBtn, #batchBtn, #clearKeys, #bundleBtn').forEach((b) => (b.disabled = !online));
     return online;
+  }
+
+  // Describe the two detector budgets and pick the engine's default.
+  function applyBudgets(health) {
+    const s = health.budgets.standard;
+    const d = health.budgets.deep;
+    $('#deep').checked = health.budget === 'deep';
+    $('#budgetNote').textContent =
+      `Standard: ECM B1=${s.ecm_b1.toLocaleString()} × ${s.ecm_curves} curves — finds factors up to ~30 bits in seconds. ` +
+      `Deep: B1=${d.ecm_b1.toLocaleString()} × ${d.ecm_curves} curves — about 10× slower on large keys.`;
+    $('#privacyNote').textContent =
+      mode === 'browser'
+        ? 'Your key is analysed inside this browser tab and never uploaded. Paste public keys only.'
+        : 'Keys go only to the rsashield server on this machine. Paste public keys only.';
+    if (mode === 'browser') $('#quick').checked = true;
   }
 
   /* ------------------------------------------------------------- samples */
@@ -130,6 +214,7 @@
   /* --------------------------------------------------------------- audit */
 
   let results = [];
+  const PRIVATE = /PRIVATE KEY|PuTTY-User-Key-File/;
 
   async function runAudit() {
     const text = $('#keyInput').value;
@@ -137,19 +222,47 @@
       $('#keyInput').focus();
       return;
     }
+    if (PRIVATE.test(text)) {
+      // never send private keys anywhere, not even to the local engine
+      showPrivateKeyWarning();
+      return;
+    }
+    const budget = $('#deep').checked ? 'deep' : 'standard';
+    const busyText = $('#auditBusyText');
+    const t0 = Date.now();
+    const tick = setInterval(() => (busyText.textContent = `Running detectors… ${Math.round((Date.now() - t0) / 1000)} s`), 500);
+    busyText.textContent = 'Running detectors…';
     $('#auditBtn').disabled = true;
     $('#auditBusy').hidden = false;
     try {
-      const data = await api('POST', '/api/audit', text);
+      const data = await api('POST', `/api/audit?budget=${budget}`, text);
       results = data.results;
       showResult(0, data.errors);
       refreshKeys();
     } catch (err) {
-      showError(err);
+      if (err.data && err.data.private_key) showPrivateKeyWarning();
+      else showError(err);
     } finally {
+      clearInterval(tick);
       $('#auditBtn').disabled = !online;
       $('#auditBusy').hidden = true;
     }
+  }
+
+  function showPrivateKeyWarning() {
+    $('#reportEmpty').hidden = true;
+    const body = $('#reportBody');
+    body.hidden = false;
+    body.replaceChildren(
+      h(
+        'div',
+        { class: 'alert', role: 'alert' },
+        h('h2', { text: 'That’s a private key — not sent' }),
+        h('p', { text: 'RSAShield only needs the public key. The text was not analysed, uploaded or stored.' }),
+        h('p', {}, 'Never paste a private key into any website or tool. If this key may have been exposed, treat it as compromised and replace it. To get the public half: ', h('code', { text: 'ssh-keygen -y -f id_rsa' }), ' or ', h('code', { text: 'openssl rsa -in key.pem -pubout' }), '.')
+      )
+    );
+    $('#keyInput').value = '';
   }
 
   function showResult(index, errors) {
@@ -274,7 +387,7 @@
       h(
         'div',
         { class: 'r-actions' },
-        h('a', { class: 'btn btn-ghost btn-sm', href: `/api/report/${id}`, target: '_blank', rel: 'noopener' }, 'View JSON report'),
+        h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => viewJson(r) }, 'View JSON report'),
         h('button', { class: 'btn btn-ghost btn-sm', type: 'button', onclick: () => download(`rsashield-report-${id}.json`, r) }, 'Download JSON')
       )
     );
@@ -318,7 +431,7 @@
     } catch {
       return;
     }
-    status.querySelector('.status-text').textContent = `Online · ${data.keys.length} stored`;
+    setStored(data.keys.length);
     const tbody = $('#keysBody');
     if (!data.keys.length) {
       tbody.replaceChildren(h('tr', { class: 'placeholder' }, h('td', { colspan: 6, text: 'No keys stored yet.' })));
@@ -507,6 +620,13 @@
   }
 
   /* ------------------------------------------------------------- helpers */
+
+  // open the report as raw JSON in a new tab (works for both back ends)
+  function viewJson(data) {
+    const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));
+    window.open(url, '_blank', 'noopener');
+    setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
 
   function download(name, data) {
     const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }));

@@ -91,3 +91,19 @@ against `rsashield serve`:
 
 Running the full bundle through the API (seed 1, full ECM grid) took 17 s on the
 development machine and reproduced the tables above, including the 0.67 cell.
+
+## Per-key cost on real-size keys
+
+One full audit of a random (sound) key, development machine:
+
+| Key | Native, deep budget | Browser (WebAssembly), standard | Browser, deep |
+|---|---|---|---|
+| 2048-bit | 12.9 s | 4.1 s | 32.2 s |
+| 4096-bit | 32.1 s | — | — |
+| 8192-bit | 97.7 s | — | — |
+
+ECM dominates (95%+ of the time), which is why the hosted site defaults to the standard
+budget (B1=2,000 × 8 curves): about a tenth of the work while still covering factors up to
+~30 bits, per the yield study above. The seeded samples audit in 0.2–0.5 s each in the
+browser, and the quick research bundle completes in about 14 s there with the same
+precision/recall/F1 = 1.000 and zero "secure" labels.
