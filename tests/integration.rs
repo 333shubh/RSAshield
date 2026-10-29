@@ -3,8 +3,8 @@
 //! never leak private factors.
 
 use num_bigint::BigUint;
-use num_traits::Num;
-use rsashield::detectors::{batch_gcd, DetectorConfig, FailureMode, Verdict};
+use num_traits::{Num, Zero};
+use rsashield::detectors::{batch_gcd, ecm, DetectorConfig, FailureMode, Verdict};
 use rsashield::key::RsaPublicKey;
 use rsashield::{audit_single, report, scoring};
 
@@ -65,6 +65,37 @@ fn batch_gcd_finds_shared_prime() {
     let res = batch_gcd::run(&[k1, k2]);
     assert_eq!(res.keys_affected, 2);
     assert!(res.signals.iter().all(|(_, s)| s.failure_mode == FailureMode::SharedPrime));
+}
+
+#[test]
+fn tree_batch_gcd_matches_pairwise() {
+    // corpus: two keys share a prime, two are independent
+    let shared = big("1000000007");
+    let a = key_from_primes(&shared, &big("1000000009"), 65537);
+    let b = key_from_primes(&shared, &big("1000000021"), 65537);
+    let c = key_from_primes(&big("1000000033"), &big("1000000087"), 65537);
+    let d = key_from_primes(&big("1000000093"), &big("1000000097"), 65537);
+    let keys = vec![a, b, c, d];
+
+    let mut pair: Vec<usize> = batch_gcd::run(&keys).signals.iter().map(|(i, _)| *i).collect();
+    let mut tree: Vec<usize> = batch_gcd::run_tree(&keys).signals.iter().map(|(i, _)| *i).collect();
+    pair.sort();
+    tree.sort();
+    assert_eq!(pair, tree, "tree batch GCD must flag the same keys as pairwise");
+    assert_eq!(tree, vec![0, 1], "only the two shared-prime keys should be flagged");
+}
+
+#[test]
+fn ecm_recovers_unbalanced_factor() {
+    // ~18-bit factor (above a 100k trial-division bound) times a large prime
+    let mid = rsashield::mathutil::random_prime_seeded(18, 7);
+    let big_p = rsashield::mathutil::random_prime_seeded(100, 8);
+    let n = &mid * &big_p;
+    let key = RsaPublicKey::new(n.clone(), BigUint::from(65537u32), "ecm-test");
+    let sig = ecm::run(&key, 5_000, 40);
+    assert_eq!(sig.verdict, Verdict::FactorRecovered, "ECM should recover the ~18-bit factor");
+    let f = sig.recovered_factor.expect("factor present");
+    assert!((&n % &f).is_zero() && f > BigUint::from(1u32) && f < n);
 }
 
 #[test]

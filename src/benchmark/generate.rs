@@ -20,12 +20,21 @@ pub struct CorpusSpec {
     pub shared_prime: usize,
     pub close_prime: usize,
     pub small_factor: usize,
+    pub unbalanced: usize,
     pub small_d: usize,
 }
 
 impl Default for CorpusSpec {
     fn default() -> Self {
-        CorpusSpec { bits: 512, healthy: 6, shared_prime: 3, close_prime: 3, small_factor: 3, small_d: 3 }
+        CorpusSpec {
+            bits: 512,
+            healthy: 6,
+            shared_prime: 3,
+            close_prime: 3,
+            small_factor: 3,
+            unbalanced: 3,
+            small_d: 3,
+        }
     }
 }
 
@@ -88,12 +97,20 @@ pub fn generate(spec: &CorpusSpec, seed: u64) -> Corpus {
         push(&mut keys, &mut truth, DefectClass::ClosePrime, n, e_std.clone(), p, q);
     }
 
-    // small factor: a tiny prime times a large one (unbalanced)
+    // small factor: a tiny prime (below the trial-division bound) times a large one
     for _ in 0..spec.small_factor {
         let small = small_prime(&mut rng); // < trial-division bound
         let big = random_prime(spec.bits - small.bits(), &mut rng);
         let n = &small * &big;
         push(&mut keys, &mut truth, DefectClass::SmallFactor, n, e_std.clone(), small, big);
+    }
+
+    // unbalanced: a medium factor ABOVE the trial-division bound but within ECM's reach
+    for _ in 0..spec.unbalanced {
+        let mid = mid_prime(&mut rng); // ~18-bit, above a 100k trial bound
+        let big = random_prime(spec.bits - mid.bits(), &mut rng);
+        let n = &mid * &big;
+        push(&mut keys, &mut truth, DefectClass::Unbalanced, n, e_std.clone(), mid, big);
     }
 
     // small private exponent (Wiener)
@@ -125,6 +142,17 @@ fn small_prime(rng: &mut ChaCha20Rng) -> BigUint {
     use crate::mathutil::is_probable_prime;
     loop {
         let v = (rng.gen_biguint(17) % BigUint::from(89000u32)) + BigUint::from(1000u32);
+        if is_probable_prime(&v, 8, rng) {
+            return v;
+        }
+    }
+}
+
+/// A prime in ~(150k, 400k): above a 100k trial-division bound, within ECM's easy reach.
+fn mid_prime(rng: &mut ChaCha20Rng) -> BigUint {
+    use crate::mathutil::is_probable_prime;
+    loop {
+        let v = (rng.gen_biguint(19) % BigUint::from(250_000u32)) + BigUint::from(150_000u32);
         if is_probable_prime(&v, 8, rng) {
             return v;
         }

@@ -22,13 +22,15 @@ fuses their results:
 | `small_factor` | tiny factors via trial division | small/unbalanced factor |
 | `fermat` | primes chosen too close together | close primes |
 | `wiener` | dangerously small private exponent `d` | small `d` |
+| `ecm` | medium/unbalanced factors beyond trial division (bounded) | small/unbalanced factor |
 | `batch_gcd` | a prime shared between two keys in the corpus | shared prime |
 
-**On ECM.** Lenstra's Elliptic Curve Method is a *planned bounded detector* (Phase 4)
-for the **small/unbalanced-factor** case only — its cost depends on the smallest factor,
-not on `n`, so it cannot factor a balanced weak-entropy modulus. Entropy failures are
-caught mainly by **batch GCD** (shared primes) and **Fermat** (close primes). A failed
-ECM run proves nothing. This correction is central to the project; see
+**On ECM.** Lenstra's Elliptic Curve Method is a **bounded detector** for the
+**small/unbalanced-factor** case only — its cost depends on the smallest factor, not on
+`n`, so it cannot factor a balanced weak-entropy modulus. It runs under a strict
+`(B1, curves)` budget (Montgomery form, one gcd per curve), and a failed ECM run proves
+nothing. Entropy failures are caught mainly by **batch GCD** (shared primes) and
+**Fermat** (close primes). This correction is central to the project; see
 [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
 
 **No "secure" verdict.** The best result RSAShield reports is `NO_DEFECT_FOUND`, meaning
@@ -61,9 +63,12 @@ detection, false-positive rate, and runtime. Ground truth is written to
 
 ## Status
 
-Phase 1 (deterministic MVP) and Phase 2 (benchmark) are implemented. Batch GCD uses the
-pairwise method (Phase 3 upgrades to Bernstein's product/remainder tree); bounded ECM is
-Phase 4. See the roadmap in [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
+Phases 1–4 are implemented: the deterministic MVP, the reproducible benchmark, Bernstein
+product/remainder-tree batch GCD (alongside the pairwise reference), and bounded
+Montgomery-form ECM with an `unbalanced` benchmark class that only ECM catches. On the
+default corpus the benchmark reports precision/recall/F1 = 1.000 with zero false positives
+and zero "secure" labels. Phases 5–6 (risk-score calibration, ICS/standards mapping) remain.
+See the roadmap in [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
 
 ## License
 

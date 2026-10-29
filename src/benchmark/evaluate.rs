@@ -39,8 +39,14 @@ fn ratio(num: usize, den: usize) -> f64 {
 pub fn run_benchmark(spec: &CorpusSpec, seed: u64) -> (Metrics, Corpus) {
     let wall = Instant::now();
     let corpus = generate(spec, seed);
-    // close primes are found in ~1 step, so a modest Fermat budget keeps this fast.
-    let cfg = DetectorConfig { trial_division_bound: 100_000, fermat_max_iters: 20_000 };
+    // close primes are found in ~1 step, so a modest Fermat budget keeps this fast;
+    // ECM runs a small curve budget sufficient for the ~18-bit unbalanced factors.
+    let cfg = DetectorConfig {
+        trial_division_bound: 100_000,
+        fermat_max_iters: 20_000,
+        ecm_b1: 3_000,
+        ecm_curves: 12,
+    };
 
     // per-key detectors
     let mut per_key_signals: Vec<Vec<Signal>> = corpus
@@ -49,8 +55,8 @@ pub fn run_benchmark(spec: &CorpusSpec, seed: u64) -> (Metrics, Corpus) {
         .map(|k| detectors::run_single_key(k, &cfg))
         .collect();
 
-    // corpus-level batch GCD
-    let bg = batch_gcd::run(&corpus.keys);
+    // corpus-level batch GCD (Phase 3 tree algorithm)
+    let bg = batch_gcd::run_tree(&corpus.keys);
     for (idx, sig) in &bg.signals {
         per_key_signals[*idx].push(sig.clone());
     }
@@ -143,6 +149,7 @@ pub fn format_metrics(m: &Metrics) -> String {
             "SharedPrime" => DefectClass::SharedPrime,
             "ClosePrime" => DefectClass::ClosePrime,
             "SmallFactor" => DefectClass::SmallFactor,
+            "Unbalanced" => DefectClass::Unbalanced,
             "SmallD" => DefectClass::SmallD,
             _ => DefectClass::Healthy,
         };
