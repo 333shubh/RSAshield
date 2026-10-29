@@ -6,3 +6,5 @@
 *.mp4
 /image.png
 # keep Cargo.lock committed (this crate ships a binary)
+# browser-preview screenshots
+/.playwright-mcp
