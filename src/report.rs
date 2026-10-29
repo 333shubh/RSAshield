@@ -44,10 +44,19 @@ pub struct OperatorReport {
     pub failure_modes: Vec<String>,
     pub caveat: String,
     pub remediation: Vec<String>,
+    pub standards: Vec<crate::standards::StandardRef>,
+    #[serde(skip_serializing_if = "String::is_empty")]
+    pub standards_note: String,
     pub signals: Vec<SignalView>,
 }
 
 pub fn operator_report(key: &RsaPublicKey, assessment: &Assessment, signals: &[Signal]) -> OperatorReport {
+    let standards = crate::standards::references_for(&assessment.failure_modes);
+    let standards_note = if standards.is_empty() {
+        String::new()
+    } else {
+        crate::standards::DISCLAIMER.to_string()
+    };
     OperatorReport {
         tool: format!("rsashield {}", env!("CARGO_PKG_VERSION")),
         key: key.to_string(),
@@ -57,6 +66,8 @@ pub fn operator_report(key: &RsaPublicKey, assessment: &Assessment, signals: &[S
         failure_modes: assessment.failure_modes.iter().map(|m| format!("{m:?}")).collect(),
         caveat: assessment.caveat.clone(),
         remediation: remediation_for(assessment),
+        standards,
+        standards_note,
         signals: signals.iter().map(SignalView::from).collect(),
     }
 }

@@ -17,6 +17,7 @@ pub mod key;
 pub mod mathutil;
 pub mod report;
 pub mod scoring;
+pub mod standards;
 
 /// Convenience: run the per-key detector pipeline and fuse into an assessment.
 pub fn audit_single(

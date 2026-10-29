@@ -54,6 +54,9 @@ cargo run --release -- audit-corpus keys.txt
 
 # run the reproducible labelled benchmark (precision/recall/runtime)
 cargo run --release -- bench --seed 1 --bits 512 --out bench-out
+
+# ECM marginal-yield study: detection vs budget vs cost (research question RQ2)
+cargo run --release -- study-ecm --seed 1 --bits 512
 ```
 
 `bench` generates a synthetic corpus with known defects and ground-truth factors,
@@ -63,12 +66,18 @@ detection, false-positive rate, and runtime. Ground truth is written to
 
 ## Status
 
-Phases 1–4 are implemented: the deterministic MVP, the reproducible benchmark, Bernstein
-product/remainder-tree batch GCD (alongside the pairwise reference), and bounded
-Montgomery-form ECM with an `unbalanced` benchmark class that only ECM catches. On the
-default corpus the benchmark reports precision/recall/F1 = 1.000 with zero false positives
-and zero "secure" labels. Phases 5–6 (risk-score calibration, ICS/standards mapping) remain.
-See the roadmap in [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
+All six roadmap phases are implemented: the deterministic MVP; the reproducible benchmark;
+Bernstein product/remainder-tree batch GCD (alongside the pairwise reference); bounded
+Montgomery-form ECM with an `unbalanced` class only ECM catches; the ECM marginal-yield
+study (RQ2) and risk-score separation; and the ICS/substation layer — IEC 62351 / NERC CIP /
+NIST references attached to each defect report, remediation context, and a demo.
+
+On the default corpus the benchmark reports precision/recall/F1 = 1.000, zero false
+positives, zero "secure" labels, and clean risk-score separation (healthy ≤ 10,
+defective ≥ 100). Measured results: [`docs/RESULTS.md`](docs/RESULTS.md). ICS remediation
+mapping: [`docs/ICS_REMEDIATION.md`](docs/ICS_REMEDIATION.md). Run the walkthrough with
+`scripts/demo.ps1` (Windows) or `scripts/demo.sh`. Roadmap:
+[`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
 
 ## License
 
