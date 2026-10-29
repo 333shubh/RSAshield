@@ -108,6 +108,32 @@ fn ecm_yield_study_detects_small_factor_at_budget() {
 }
 
 #[test]
+fn defect_report_includes_ics_standards_refs() {
+    // a broken key should carry indicative ICS standards references
+    let small = big("101");
+    let large = big("32416190071");
+    let key = key_from_primes(&small, &large, 65537);
+    let (a, signals) = audit_single(&key, &DetectorConfig::default());
+    let r = report::operator_report(&key, &a, &signals);
+    assert!(!r.standards.is_empty(), "defect report should carry standards references");
+    assert!(r.standards.iter().any(|s| s.framework.contains("62351")), "expected an IEC 62351 reference");
+    assert!(!r.standards_note.is_empty(), "standards disclaimer should be present");
+
+    // a policy-clean key carries no standards references. This must be a full-size
+    // (2048-bit) key with a standard exponent: a 512-bit key, though unfactorable, is
+    // below the tool's 2048-bit policy floor and so legitimately carries a WeakMetadata
+    // size reference (see metadata.rs / ICS_REMEDIATION.md).
+    let p = rsashield::mathutil::random_prime_seeded(1024, 11);
+    let q = rsashield::mathutil::random_prime_seeded(1024, 12);
+    let clean = key_from_primes(&p, &q, 65537);
+    let (ca, cs) = audit_single(&clean, &DetectorConfig::default());
+    assert!(ca.failure_modes.iter().all(|m| *m == FailureMode::None),
+        "sanity: the 2048-bit key should have no failure modes, got {:?}", ca.failure_modes);
+    let cr = report::operator_report(&clean, &ca, &cs);
+    assert!(cr.standards.is_empty(), "clean key should have no standards references");
+}
+
+#[test]
 fn operator_report_has_no_private_factor() {
     // a broken key whose factor IS recovered; the operator report must not contain it
     let small = big("101");

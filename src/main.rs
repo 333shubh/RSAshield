@@ -198,7 +198,15 @@ fn cmd_bench(args: &[String]) -> ExitCode {
         let _ = fs::write(format!("{dir}/manifest.json"), manifest);
         let metrics_json = serde_json::to_string_pretty(&metrics).unwrap_or_default();
         let _ = fs::write(format!("{dir}/metrics.json"), metrics_json);
-        eprintln!("wrote {dir}/manifest.json (ground truth) and {dir}/metrics.json");
+        // public keys only (hex modulus:exponent), for the audit-corpus workflow / demo
+        let keys_txt: String = corpus
+            .keys
+            .iter()
+            .map(|k| format!("{}:{}", k.n.to_str_radix(16), k.e.to_str_radix(16)))
+            .collect::<Vec<_>>()
+            .join("\n");
+        let _ = fs::write(format!("{dir}/keys.txt"), keys_txt);
+        eprintln!("wrote {dir}/manifest.json (ground truth), {dir}/metrics.json, {dir}/keys.txt");
     }
     ExitCode::SUCCESS
 }

@@ -66,14 +66,17 @@ detection, false-positive rate, and runtime. Ground truth is written to
 
 ## Status
 
-Phases 1–5 are implemented: the deterministic MVP, the reproducible benchmark, Bernstein
-product/remainder-tree batch GCD (alongside the pairwise reference), bounded Montgomery-form
-ECM with an `unbalanced` benchmark class that only ECM catches, and the ECM marginal-yield
-study (RQ2). On the default corpus the benchmark reports precision/recall/F1 = 1.000 with
-zero false positives, zero "secure" labels, and clean risk-score separation (healthy ≤ 10,
-defective ≥ 100). The `study-ecm` command shows detection rising with the `(B1, curves)`
-budget and falling as the target factor grows, with cost growing in both. Phase 6 (ICS /
-IEC 62351 / NERC CIP mapping, demo, report) remains. See the roadmap in
+All six roadmap phases are implemented: the deterministic MVP; the reproducible benchmark;
+Bernstein product/remainder-tree batch GCD (alongside the pairwise reference); bounded
+Montgomery-form ECM with an `unbalanced` class only ECM catches; the ECM marginal-yield
+study (RQ2) and risk-score separation; and the ICS/substation layer — IEC 62351 / NERC CIP /
+NIST references attached to each defect report, remediation context, and a demo.
+
+On the default corpus the benchmark reports precision/recall/F1 = 1.000, zero false
+positives, zero "secure" labels, and clean risk-score separation (healthy ≤ 10,
+defective ≥ 100). Measured results: [`docs/RESULTS.md`](docs/RESULTS.md). ICS remediation
+mapping: [`docs/ICS_REMEDIATION.md`](docs/ICS_REMEDIATION.md). Run the walkthrough with
+`scripts/demo.ps1` (Windows) or `scripts/demo.sh`. Roadmap:
 [`docs/RESEARCH_PLAN.md`](docs/RESEARCH_PLAN.md).
 
 ## License
