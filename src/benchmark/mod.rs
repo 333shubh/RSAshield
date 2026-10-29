@@ -17,6 +17,7 @@ pub enum DefectClass {
     SharedPrime,
     ClosePrime,
     SmallFactor,
+    Unbalanced,
     SmallD,
 }
 
@@ -24,13 +25,14 @@ impl DefectClass {
     pub fn is_defective(self) -> bool {
         self != DefectClass::Healthy
     }
-    /// Detector expected to catch this class in the MVP.
+    /// Detector expected to catch this class.
     pub fn expected_detector(self) -> &'static str {
         match self {
             DefectClass::Healthy => "(none)",
             DefectClass::SharedPrime => "batch_gcd",
             DefectClass::ClosePrime => "fermat",
             DefectClass::SmallFactor => "small_factor",
+            DefectClass::Unbalanced => "ecm",
             DefectClass::SmallD => "wiener",
         }
     }

@@ -129,12 +129,12 @@ fn cmd_audit_corpus(args: &[String]) -> ExitCode {
         .iter()
         .map(|k| rsashield::detectors::run_single_key(k, &cfg))
         .collect();
-    let bg = batch_gcd::run(&keys);
+    let bg = batch_gcd::run_tree(&keys);
     for (idx, sig) in &bg.signals {
         per_key[*idx].push(sig.clone());
     }
 
-    println!("audited {} keys; batch GCD compared {} pairs, flagged {} keys\n", keys.len(), bg.pairs_compared, bg.keys_affected);
+    println!("audited {} keys; tree batch GCD flagged {} keys with shared primes\n", keys.len(), bg.keys_affected);
     for (i, signals) in per_key.iter().enumerate() {
         let assessment = scoring::assess(signals);
         let r = report::operator_report(&keys[i], &assessment, signals);

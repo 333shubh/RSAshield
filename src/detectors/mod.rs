@@ -3,6 +3,7 @@
 //! factors are carried in a field that is never serialised into operator output.
 
 pub mod batch_gcd;
+pub mod ecm;
 pub mod fermat;
 pub mod metadata;
 pub mod small_factor;
@@ -83,11 +84,20 @@ impl Signal {
 pub struct DetectorConfig {
     pub trial_division_bound: u64,
     pub fermat_max_iters: u64,
+    /// ECM stage-1 smoothness bound.
+    pub ecm_b1: u64,
+    /// Number of ECM curves to try (0 disables ECM).
+    pub ecm_curves: u32,
 }
 
 impl Default for DetectorConfig {
     fn default() -> Self {
-        DetectorConfig { trial_division_bound: 100_000, fermat_max_iters: 100_000 }
+        DetectorConfig {
+            trial_division_bound: 100_000,
+            fermat_max_iters: 100_000,
+            ecm_b1: 10_000,
+            ecm_curves: 16,
+        }
     }
 }
 
@@ -98,5 +108,6 @@ pub fn run_single_key(key: &RsaPublicKey, cfg: &DetectorConfig) -> Vec<Signal> {
         small_factor::run(key, cfg.trial_division_bound),
         fermat::run(key, cfg.fermat_max_iters),
         wiener::run(key),
+        ecm::run(key, cfg.ecm_b1, cfg.ecm_curves),
     ]
 }
