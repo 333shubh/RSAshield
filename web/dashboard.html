@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Audit Console — RSAShield</title>
+  <meta name="description" content="Audit RSA public keys locally: per-key detectors, corpus batch GCD, and the reproducible research bundle.">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="console.css">
+</head>
+<body class="console">
+
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="index.html" aria-label="RSAShield home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5l11 4.4v8.2c0 7.1-4.7 12-11 14.4C9.7 27.1 5 22.2 5 15.1V6.9z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="16" cy="15.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="16" cy="15.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>RSAShield</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="index.html">Overview</a>
+        <a href="dashboard.html" aria-current="page">Dashboard</a>
+        <a href="#bundle">Research Bundle</a>
+        <a href="related-work.html">Related Work</a>
+      </nav>
+      <span class="status" id="status" role="status"><span class="dot"></span><span class="status-text">Connecting…</span></span>
+    </div>
+  </header>
+
+  <main>
+    <section class="page-head framed">
+      <div class="frame">
+        <div class="head-inner">
+          <div class="head-copy" data-reveal>
+            <p class="eyebrow">Audit console</p>
+            <h1>Audit a Key</h1>
+            <p class="lead-left">Paste a PEM public key or a hex <code>modulus:exponent</code> pair &mdash; or a whole list. Every detector runs on this machine; nothing is sent anywhere else.</p>
+          </div>
+          <svg class="head-art" data-scene="step2" viewBox="-215 -215 430 345" aria-hidden="true"></svg>
+        </div>
+      </div>
+    </section>
+
+    <div class="offline-banner" id="offline" hidden>
+      <div class="offline-inner">
+        <strong>The audit server isn&rsquo;t running.</strong>
+        Start it from the project folder with <code>cargo run --release -- serve</code>, then open
+        <a href="http://127.0.0.1:8080/dashboard">127.0.0.1:8080/dashboard</a>.
+      </div>
+    </div>
+
+    <section class="workspace framed">
+      <div class="frame">
+        <div class="ws-grid">
+          <!-- input -->
+          <div class="panel" data-reveal>
+            <div class="panel-head">
+              <h2>Input</h2>
+              <span class="hint">PEM, DER-in-PEM, or hex n:e &middot; one key per line</span>
+            </div>
+            <label class="sr-only" for="keyInput">Public key(s)</label>
+            <textarea id="keyInput" spellcheck="false" autocomplete="off" placeholder="-----BEGIN PUBLIC KEY-----&#10;MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA…&#10;-----END PUBLIC KEY-----&#10;&#10;or  c0ffee…:10001"></textarea>
+            <div class="row">
+              <button class="btn btn-primary" id="auditBtn" type="button">Audit Key</button>
+              <button class="btn btn-ghost" id="clearInput" type="button">Clear</button>
+              <span class="busy" id="auditBusy" hidden><span class="spinner"></span>Running detectors…</span>
+            </div>
+
+            <div class="samples">
+              <div class="panel-sub">
+                <h3>Sample keys</h3>
+                <span class="hint">Seeded synthetic keys &mdash; one per defect class</span>
+              </div>
+              <div class="sample-list" id="samples"></div>
+            </div>
+          </div>
+
+          <!-- report -->
+          <div class="panel report" id="report" aria-live="polite" data-reveal>
+            <div class="empty" id="reportEmpty">
+              <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 5l15 6v11c0 10-6.5 16.5-15 20-8.5-3.5-15-10-15-20V11z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="22" r="7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="24" cy="22" r="2.4" fill="currentColor"/></svg>
+              <h2>No report yet</h2>
+              <p>Audit a key or pick a sample. The operator report will appear here &mdash; classification, risk score, failure modes, remediation and ICS standards references.</p>
+            </div>
+            <div id="reportBody" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- stored keys + batch gcd -->
+    <section class="stored framed" id="stored">
+      <div class="frame">
+        <div class="section-head" data-reveal>
+          <div>
+            <h2>Stored Keys</h2>
+            <p>Every audited key is kept in memory for this session so batch GCD can compare the whole corpus.</p>
+          </div>
+          <div class="row">
+            <button class="btn btn-primary" id="batchBtn" type="button">Run Batch GCD</button>
+            <button class="btn btn-ghost" id="clearKeys" type="button">Clear All</button>
+          </div>
+        </div>
+        <div class="batch-result" id="batchResult" hidden></div>
+        <div class="table-wrap" data-reveal>
+          <table class="keys">
+            <thead>
+              <tr><th scope="col">#</th><th scope="col">Key</th><th scope="col">Bits</th><th scope="col">Classification</th><th scope="col" class="num">Risk</th><th scope="col">Failure modes</th></tr>
+            </thead>
+            <tbody id="keysBody">
+              <tr class="placeholder"><td colspan="6">No keys stored yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- research bundle -->
+    <section class="bundle framed" id="bundle">
+      <div class="frame">
+        <div class="section-head" data-reveal>
+          <div>
+            <h2>Research Bundle</h2>
+            <p>Regenerates the seeded, labelled benchmark corpus and the ECM marginal-yield study, then reports detection quality. Ground truth stays inside the harness.</p>
+          </div>
+          <div class="row bundle-controls">
+            <label class="field">Seed <input id="seed" type="number" min="0" value="1" inputmode="numeric"></label>
+            <label class="check"><input id="quick" type="checkbox"> Quick ECM grid</label>
+            <button class="btn btn-primary" id="bundleBtn" type="button">Run Bundle</button>
+          </div>
+        </div>
+        <div class="bundle-progress" id="bundleBusy" hidden><span class="spinner"></span><span id="bundleTimer">Running benchmark and ECM study… 0 s</span></div>
+        <div id="bundleOut" hidden></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer framed">
+    <div class="frame">
+      <a class="brand brand-lg" href="index.html" aria-label="RSAShield home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5l11 4.4v8.2c0 7.1-4.7 12-11 14.4C9.7 27.1 5 22.2 5 15.1V6.9z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="16" cy="15.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="16" cy="15.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>RSAShield</span>
+      </a>
+      <nav class="footer-links" aria-label="Documentation">
+        <a href="index.html">Overview</a>
+        <a href="related-work.html">Related work</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/THREAT_MODEL.md">Threat model</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/ICS_REMEDIATION.md">ICS remediation</a>
+      </nav>
+      <p class="fine">&copy;<span data-year>2026</span> RSAShield. Synthetic keys and authorised data only.</p>
+    </div>
+  </footer>
+
+  <script src="iso.js"></script>
+  <script src="scenes.js"></script>
+  <script src="app.js"></script>
+  <script src="dashboard.js"></script>
+</body>
+</html>

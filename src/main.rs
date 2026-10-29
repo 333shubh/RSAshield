@@ -7,6 +7,10 @@
 //!                           including corpus-level batch GCD
 //!   bench [--seed N] [--bits N] [--out DIR]
 //!                           generate a labelled synthetic corpus and report metrics
+//!   study-ecm [--seed N] [--bits N]
+//!                           ECM marginal-yield study (detection vs budget vs factor size)
+//!   serve [--addr HOST:PORT]
+//!                           local web UI + JSON API (default 127.0.0.1:8080)
 
 use rsashield::benchmark::evaluate::{format_metrics, run_benchmark};
 use rsashield::benchmark::generate::CorpusSpec;
@@ -29,6 +33,7 @@ fn main() -> ExitCode {
         "audit-corpus" => cmd_audit_corpus(&args[1..]),
         "bench" => cmd_bench(&args[1..]),
         "study-ecm" => cmd_study_ecm(&args[1..]),
+        "serve" => cmd_serve(&args[1..]),
         "-h" | "--help" | "help" => {
             print_usage();
             ExitCode::SUCCESS
@@ -49,7 +54,8 @@ fn print_usage() {
          \trsashield audit --hex \"<modulus_hex>:<exponent_hex>\" [--forensic]\n\
          \trsashield audit-corpus <file>\n\
          \trsashield bench [--seed N] [--bits N] [--out DIR]\n\
-         \trsashield study-ecm [--seed N] [--bits N]\n",
+         \trsashield study-ecm [--seed N] [--bits N]\n\
+         \trsashield serve [--addr HOST:PORT]\n",
         env!("CARGO_PKG_VERSION")
     );
 }
@@ -120,7 +126,7 @@ fn cmd_audit_corpus(args: &[String]) -> ExitCode {
         }
     };
 
-    let keys = parse_corpus(&text);
+    let keys: Vec<RsaPublicKey> = key::parse_many(&text, "corpus").into_iter().filter_map(Result::ok).collect();
     if keys.is_empty() {
         eprintln!("no keys parsed from {path}");
         return ExitCode::from(1);
@@ -143,41 +149,6 @@ fn cmd_audit_corpus(args: &[String]) -> ExitCode {
         println!("{}", report::to_json(&r));
     }
     ExitCode::SUCCESS
-}
-
-fn parse_corpus(text: &str) -> Vec<RsaPublicKey> {
-    let mut keys = Vec::new();
-    // PEM blocks first
-    let mut buf = String::new();
-    let mut inside = false;
-    for line in text.lines() {
-        if line.contains("-----BEGIN") {
-            inside = true;
-            buf.clear();
-            buf.push_str(line);
-            buf.push('\n');
-            continue;
-        }
-        if inside {
-            buf.push_str(line);
-            buf.push('\n');
-            if line.contains("-----END") {
-                inside = false;
-                if let Ok(k) = key::parse_any(&buf, format!("corpus#{}", keys.len())) {
-                    keys.push(k);
-                }
-            }
-            continue;
-        }
-        // non-PEM line: try hex n:e
-        let l = line.trim();
-        if l.contains(':') || l.contains(',') {
-            if let Ok(k) = key::parse_any(l, format!("corpus#{}", keys.len())) {
-                keys.push(k);
-            }
-        }
-    }
-    keys
 }
 
 fn cmd_bench(args: &[String]) -> ExitCode {
@@ -221,4 +192,15 @@ fn cmd_study_ecm(args: &[String]) -> ExitCode {
     let study = run_ecm_study(bits, seed, &factor_sizes, &budgets, 6);
     println!("{}", format_study(&study));
     ExitCode::SUCCESS
+}
+
+fn cmd_serve(args: &[String]) -> ExitCode {
+    let addr = opt(args, "--addr").unwrap_or("127.0.0.1:8080");
+    match rsashield::server::serve(addr) {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(e) => {
+            eprintln!("cannot serve on {addr}: {e}");
+            ExitCode::from(1)
+        }
+    }
 }

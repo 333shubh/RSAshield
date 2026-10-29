@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RSAShield — Offline RSA Key Auditing</title>
+  <meta name="description" content="RSAShield audits RSA public keys offline with batch GCD, Fermat, ECM, Wiener and metadata detectors, and maps findings to IEC 62351 / NERC CIP references.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="nav" id="top">
+    <div class="nav-inner">
+      <a class="brand" href="#top" aria-label="RSAShield home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5l11 4.4v8.2c0 7.1-4.7 12-11 14.4C9.7 27.1 5 22.2 5 15.1V6.9z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="16" cy="15.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="16" cy="15.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>RSAShield</span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#how">How it Works</a>
+        <a href="#detectors">Detectors</a>
+        <a href="#why">ICS Standards</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="related-work.html">Related Work</a>
+      </nav>
+      <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
+    </div>
+  </header>
+
+  <main>
+    <!-- hero -->
+    <section class="hero framed">
+      <div class="frame">
+        <div class="hero-stage">
+          <svg class="hero-art" data-scene="hero" viewBox="-560 -460 1120 700" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+          <div class="hero-copy">
+            <h1 data-reveal>Turn Weak Keys<br>into Known Risks</h1>
+            <p class="lead" data-reveal>Find shared primes, close primes, small factors and more &mdash; offline, with research-grade detectors and ICS-ready remediation.</p>
+            <div class="actions" data-reveal>
+              <a class="btn btn-primary" href="dashboard.html">Audit a Key</a>
+              <a class="btn btn-ghost" href="dashboard.html#bundle">See Results</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- how it works -->
+    <section class="steps" id="how">
+      <div class="step">
+        <div class="step-copy" data-reveal>
+          <h2><span class="num">01.</span> You Provide Public Keys</h2>
+          <p>Drop in PEM, DER or hex moduli &mdash; one key or a whole fleet export. Everything stays offline; nothing touches a live OT network.</p>
+          <a class="btn btn-primary" href="dashboard.html">Audit a Key</a>
+        </div>
+        <svg class="step-art" data-scene="step1" viewBox="-215 -240 430 365" aria-hidden="true" data-reveal></svg>
+      </div>
+
+      <div class="step flip">
+        <div class="step-copy" data-reveal>
+          <h2><span class="num">02.</span> Six Detectors Interrogate Them</h2>
+          <p>Batch GCD, Fermat, small-factor trial division, bounded ECM, Wiener and metadata checks each hunt a different key-generation failure.</p>
+          <a class="btn btn-primary" href="#detectors">Explore Detectors</a>
+        </div>
+        <svg class="step-art" data-scene="step2" viewBox="-215 -215 430 345" aria-hidden="true" data-reveal></svg>
+      </div>
+
+      <div class="step">
+        <div class="step-copy" data-reveal>
+          <h2><span class="num">03.</span> You Get a Prioritised Report</h2>
+          <p>A fused risk score, the failure mode, IEC 62351 / NERC CIP references and remediation steps &mdash; never a private factor, never a &ldquo;secure&rdquo; label.</p>
+          <a class="btn btn-primary" href="dashboard.html#bundle">See Results</a>
+        </div>
+        <svg class="step-art" data-scene="step3" viewBox="-215 -240 430 365" aria-hidden="true" data-reveal></svg>
+      </div>
+    </section>
+
+    <!-- examples -->
+    <section class="examples framed" id="detectors">
+      <div class="frame">
+        <h2 class="section-title" data-reveal>Examples of What You Can<br>Catch With RSAShield</h2>
+        <div class="grid" data-reveal>
+          <article class="card">
+            <h3>Shared Primes</h3>
+            <p>Batch GCD across the corpus exposes keys that reuse a prime &mdash; the classic low-entropy, whole-batch failure.</p>
+            <svg data-scene="ex-shared" viewBox="-160 -118 320 222" aria-hidden="true"></svg>
+          </article>
+          <article class="card">
+            <h3>Close Primes</h3>
+            <p>Fermat factorisation splits moduli whose two primes were drawn too close together.</p>
+            <svg data-scene="ex-close" viewBox="-160 -118 320 222" aria-hidden="true"></svg>
+          </article>
+          <article class="card">
+            <h3>Small &amp; Unbalanced Factors</h3>
+            <p>Trial division and bounded Montgomery-form ECM recover factors far smaller than they should be.</p>
+            <svg data-scene="ex-ecm" viewBox="-160 -118 320 222" aria-hidden="true"></svg>
+          </article>
+          <article class="card wide">
+            <h3>Small Private Exponents</h3>
+            <p>Wiener&rsquo;s continued-fraction attack recovers a private exponent chosen too small for speed.</p>
+            <svg data-scene="ex-wiener" viewBox="-196 -128 392 232" aria-hidden="true"></svg>
+          </article>
+          <article class="card wide">
+            <h3>Weak Parameters</h3>
+            <p>Undersized moduli, unusual exponents and low-entropy bytes are flagged against current key-size policy.</p>
+            <svg data-scene="ex-meta" viewBox="-196 -128 392 232" aria-hidden="true"></svg>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- why -->
+    <section class="why framed" id="why">
+      <div class="frame">
+        <h2 class="section-title" data-reveal>Research-Grade Auditing,<br>100% Offline</h2>
+        <div class="band" data-reveal>
+          <article class="feat">
+            <svg data-scene="feat-honest" viewBox="-200 -90 400 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+            <h3>Never Says &ldquo;Secure&rdquo;</h3>
+            <p>The strongest clean result is NO_DEFECT_FOUND &mdash; a bounded statement, never a proof. Absence of evidence is reported honestly.</p>
+          </article>
+          <article class="feat">
+            <svg data-scene="feat-ics" viewBox="-200 -90 400 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+            <h3>Built for Substations</h3>
+            <p>Every finding maps to indicative IEC 62351, NERC CIP and NIST references, so it routes straight into your remediation process.</p>
+          </article>
+          <article class="feat">
+            <svg data-scene="feat-measured" viewBox="-200 -90 400 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+            <h3>Measured, Not Claimed</h3>
+            <p>Precision, recall and F1 of 1.000 on a seeded benchmark, plus an ECM marginal-yield study you can reproduce.</p>
+          </article>
+        </div>
+        <div class="center" data-reveal>
+          <a class="btn btn-primary" href="dashboard.html">Audit a Key</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- call to action -->
+    <section class="cta" id="start">
+      <div class="cta-inner">
+        <div class="cta-copy" data-reveal>
+          <h2>Ready to Audit<br>Your Key Fleet?</h2>
+          <div class="actions-left">
+            <a class="btn btn-primary" href="dashboard.html">Open the Dashboard</a>
+            <a class="btn btn-ghost" href="https://github.com/333shubh/RSAshield">Get the Code</a>
+          </div>
+        </div>
+      </div>
+      <svg class="cta-art" data-scene="orbit" viewBox="0 0 560 460" preserveAspectRatio="xMinYMid slice" aria-hidden="true"></svg>
+    </section>
+  </main>
+
+  <footer class="footer framed">
+    <div class="frame">
+      <a class="brand brand-lg" href="#top" aria-label="RSAShield home">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M16 2.5l11 4.4v8.2c0 7.1-4.7 12-11 14.4C9.7 27.1 5 22.2 5 15.1V6.9z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/>
+          <circle cx="16" cy="15.5" r="6.2" fill="none" stroke="currentColor" stroke-width="2.4"/>
+          <circle cx="16" cy="15.5" r="2.1" fill="currentColor"/>
+        </svg>
+        <span>RSAShield</span>
+      </a>
+      <nav class="footer-links" aria-label="Documentation">
+        <a href="dashboard.html">Dashboard</a>
+        <a href="related-work.html">Related work</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/THREAT_MODEL.md">Threat model</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/RESEARCH_PLAN.md">Research plan</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/ICS_REMEDIATION.md">ICS remediation</a>
+      </nav>
+      <p class="fine">&copy;<span data-year>2026</span> RSAShield. Synthetic keys and authorised data only.</p>
+    </div>
+  </footer>
+
+  <script src="iso.js"></script>
+  <script src="scenes.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

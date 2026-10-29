@@ -30,3 +30,4 @@ echo "== ECM marginal-yield study (budget vs detection vs cost) =="
 
 echo
 echo "Demo complete. Ground truth is in demo-out/manifest.json (harness only)."
+echo "For the web dashboard run:  $BIN serve   then open http://127.0.0.1:8080/dashboard"

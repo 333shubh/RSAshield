@@ -175,7 +175,7 @@ Plus **Wiener's attack** screen (continued-fraction convergents of `e/n`) for da
 - **Phase 5 — Fusion & reporting.** Calibrated risk scorer (RQ3), failure-mode attribution, operator vs forensic report split with structural redaction.
 - **Phase 6 — Domain + demo + write-up.** IEC 62351 / NERC CIP mapping, remediation guidance, reproducible demo, final report.
 
-**Dependency order:** 0 → 1 → 2 → {3, 4 in parallel} → 5 → 6. HTTP/UI layer (the `image.png` service + dashboard) is deferred to the end (to be built later in a separate UI pass).
+**Dependency order:** 0 → 1 → 2 → {3, 4 in parallel} → 5 → 6. HTTP/UI layer (the `image.png` service + dashboard) is deferred to the end (to be built later in a separate UI pass). *Done: `rsashield serve` (`src/server.rs`, `web/`) now covers that feature surface; see the README.*
 
 ---
 

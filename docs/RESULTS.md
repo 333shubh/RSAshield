@@ -70,6 +70,24 @@ ran the benchmark in ~359 s. Switching to Montgomery-form curves with the Montgo
 cargo test --release
 ```
 
-Integration tests cover each detector, tree-vs-pairwise batch-GCD equivalence, ECM factor
-recovery and yield, the no-`secure`-label invariant, operator-report redaction, and the
-presence of ICS standards references on defect reports.
+Integration tests (`tests/integration.rs`, 9 tests) cover each detector, tree-vs-pairwise
+batch-GCD equivalence, ECM factor recovery and yield, the no-`secure`-label invariant,
+operator-report redaction, and the presence of ICS standards references on defect reports.
+
+Web API tests (`tests/server.rs`, 9 tests) reproduce the original prototype's live checks
+against `rsashield serve`:
+
+| Check | Result |
+|---|---|
+| Health, dashboard, related work | 200 |
+| Small factor / close primes / small `d` / unbalanced samples | `FACTOR_RECOVERED` via `small_factor` / `fermat` / `wiener` / `ecm` |
+| Normal 512-bit and legacy 1024-bit samples | `NO_DEFECT_FOUND` (size advisory only) |
+| Bad PEM | 400 with a clear parse error |
+| Batch GCD on 6 stored healthy keys | 15 pairs, 0 shared factors |
+| Shared-prime pair | clean alone; `FACTOR_RECOVERED` after batch GCD |
+| Report JSON | 200, and no response ever contains a private factor |
+| Research bundle | precision 1, recall 1, zero "secure" labels |
+| Raw HTTP over a socket | 200 / 400 / 413 (oversized body) as expected |
+
+Running the full bundle through the API (seed 1, full ECM grid) took 17 s on the
+development machine and reproduced the tables above, including the 0.67 cell.
