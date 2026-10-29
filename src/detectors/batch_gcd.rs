@@ -11,8 +11,8 @@
 use super::{FailureMode, Signal, Verdict};
 use crate::key::RsaPublicKey;
 use crate::mathutil::gcd;
-use num_traits::One;
 use num_bigint::BigUint;
+use num_traits::One;
 use std::time::Instant;
 
 /// Result of a corpus-level shared-factor scan.
