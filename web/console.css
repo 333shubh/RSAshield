@@ -17,7 +17,7 @@
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
 }
-code { font-family: var(--mono); font-size: .88em; background: #eceef5; padding: 1px 5px; border-radius: 4px; }
+code { font-family: var(--mono); font-size: .88em; background: #eceef5; padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
 button { font: inherit; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; transform: none !important; }
 .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -246,9 +246,29 @@ td.mono { font-family: var(--mono); font-size: 12px; word-break: break-all; }
 @media (max-width: 900px) {
   .head-inner, .ws-grid { grid-template-columns: 1fr; }
   .head-art { justify-self: center; max-width: 260px; }
-  .rw-list { grid-template-columns: 1fr; margin-inline: 16px; }
+  /* full-width lists run edge to edge like the landing page's card grid */
+  .rw-list { grid-template-columns: 1fr; }
+  .rw-list, .stored .table-wrap, .gap-table { max-width: none; margin-inline: 0; border-inline: 0; }
+  .rw { padding: 22px 16px; }
+  .batch-result { margin-inline: 16px; }
 }
 @media (max-width: 560px) {
+  /* stacked tables: one block per row, each cell labelled with its column */
+  table.stack thead { display: none; }
+  table.stack, table.stack tbody, table.stack tr { display: block; }
+  table.stack tr { padding: 8px 0; border-bottom: 1px solid var(--line); }
+  table.stack tbody tr:last-child { border-bottom: 0; }
+  table.stack td {
+    display: grid; grid-template-columns: 92px minmax(0, 1fr); gap: 10px;
+    padding: 5px 14px; border: 0; text-align: left;
+  }
+  table.stack td::before {
+    content: attr(data-label);
+    font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase;
+    color: var(--muted); padding-top: 2px;
+  }
+  table.stack td:not([data-label]) { display: block; }
+  table.stack td:not([data-label])::before { content: none; }
   .sample-list { grid-template-columns: 1fr; }
   .facts { grid-template-columns: 1fr; }
   .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }

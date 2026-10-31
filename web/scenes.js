@@ -174,7 +174,7 @@
 
     // phones: frame the hub and its nearest tiles rather than shrinking the whole scene
     const narrow = window.matchMedia('(max-width: 900px)');
-    const fit = () => svg.setAttribute('viewBox', narrow.matches ? '-340 -340 700 640' : '-600 -500 1200 810');
+    const fit = () => svg.setAttribute('viewBox', narrow.matches ? '-380 -335 840 620' : '-600 -500 1200 810');
     fit();
     narrow.addEventListener('change', fit);
   }

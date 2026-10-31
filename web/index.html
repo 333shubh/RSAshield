@@ -23,14 +23,19 @@
         </svg>
         <span>RSAShield</span>
       </a>
-      <nav class="nav-links" aria-label="Primary">
+      <nav class="nav-links" id="primary-nav" aria-label="Primary">
         <a href="#how" aria-current="page">How it Works</a>
         <a href="#detectors" aria-current="page">Detectors</a>
         <a href="#why" aria-current="page">ICS Standards</a>
         <a href="dashboard.html">Dashboard</a>
         <a href="related-work.html">Related Work</a>
       </nav>
-      <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
+      <div class="nav-end">
+        <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -85,7 +90,7 @@
     <!-- examples -->
     <section class="examples framed" id="detectors">
       <div class="frame">
-        <h2 class="section-title" data-reveal>Examples of What You Can<br>Catch With RSAShield</h2>
+        <h2 class="section-title" data-reveal>Examples of What You Can <br>Catch With RSAShield</h2>
         <div class="grid" data-reveal>
           <article class="card">
             <h3>Shared Primes</h3>
@@ -119,7 +124,7 @@
     <!-- why -->
     <section class="why framed" id="why">
       <div class="frame">
-        <h2 class="section-title" data-reveal>Research-Grade Auditing,<br>100% Offline</h2>
+        <h2 class="section-title" data-reveal>Research-Grade Auditing, <br>100% Offline</h2>
         <div class="band" data-reveal>
           <article class="feat">
             <svg data-scene="feat-honest" viewBox="-200 -110 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>

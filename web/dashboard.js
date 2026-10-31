@@ -337,7 +337,7 @@
             { class: 'table-wrap' },
             h(
               'table',
-              {},
+              { class: 'stack' },
               h('thead', {}, h('tr', {}, h('th', { scope: 'col', text: 'Framework' }), h('th', { scope: 'col', text: 'Reference' }), h('th', { scope: 'col', text: 'Why it applies' }))),
               h('tbody', {}, r.standards.map((s) => h('tr', {}, h('td', { text: s.framework }), h('td', { text: s.reference }), h('td', { text: s.relevance }))))
             )
@@ -357,7 +357,7 @@
           { class: 'table-wrap' },
           h(
             'table',
-            {},
+            { class: 'stack' },
             h(
               'thead',
               {},
