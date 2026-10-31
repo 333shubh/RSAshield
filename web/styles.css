@@ -43,6 +43,7 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
   justify-content: center;
   height: 42px;
   padding: 0 20px;
+  border: 0;
   border-radius: 999px;
   font: 500 15px/1 var(--sans);
   text-decoration: none;
@@ -95,8 +96,8 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
   color: var(--ink);
 }
 .brand-mark { width: 24px; height: 24px; color: var(--blue); }
-.nav-links { display: flex; gap: 28px; }
-.nav-links a { text-decoration: none; color: #5d6278; font-size: 14px; transition: color .2s; }
+.nav-links { display: flex; gap: 24px; }
+.nav-links a { text-decoration: none; color: #5d6278; font-size: 14px; white-space: nowrap; transition: color .2s; }
 .nav-links a:hover { color: var(--ink); }
 
 /* ------------------------------------------------------------------- hero */
@@ -105,9 +106,16 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
   position: relative;
   max-width: 1180px;
   margin: 0 auto;
-  aspect-ratio: 1120 / 700;
+  aspect-ratio: 1200 / 810;
 }
-.hero-art { position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden; }
+/* soft edges: the scene fades into the frame instead of being cut off */
+.hero-art {
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, #000 90%, transparent);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent), linear-gradient(to bottom, #000 90%, transparent);
+  mask-composite: intersect;
+}
 .hero-copy {
   position: absolute;
   top: 7%;
@@ -119,7 +127,7 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
 }
 .hero-copy > * { pointer-events: auto; }
 .hero h1 { font-size: clamp(42px, 5.9vw, 74px); line-height: 1.04; }
-.lead { max-width: 560px; margin: 20px auto 0; color: var(--ink-2); font-size: 16px; }
+.lead { max-width: 520px; margin: 20px auto 0; color: var(--ink-2); font-size: 16px; }
 .actions { display: flex; gap: 10px; justify-content: center; margin-top: 34px; }
 
 /* ------------------------------------------------------------------ steps */
@@ -169,19 +177,23 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
 .card.wide { grid-column: span 3; }
 .card h3 { font-size: 17px; line-height: 1.3; }
 .card p { margin-top: 8px; color: var(--ink-2); font-size: 13px; line-height: 1.5; max-width: 330px; }
-.card svg { width: 100%; height: auto; margin-top: auto; padding-top: 10px; }
+.card svg { width: 100%; height: auto; margin-top: auto; padding: 10px 0 14px; }
 
 /* -------------------------------------------------------------------- why */
 .why > .frame { border-top: 1px solid var(--line); padding: 96px 0 90px; }
 .why .section-title { padding: 0 16px; }
+/* same hairline grid as the examples above */
 .band {
-  margin-top: 48px;
+  max-width: var(--col);
+  margin: 48px auto 0;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0;
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
 }
-.feat { min-width: 0; }
-.feat svg { width: 100%; height: 172px; background: #fbfbfd; }
+.feat { min-width: 0; background: #fbfbfd; padding-bottom: 24px; }
+.feat svg { width: 100%; height: auto; aspect-ratio: 400 / 220; border-bottom: 1px solid var(--line); }
 .feat h3 { font-size: 17px; margin: 20px 18px 0; }
 .feat p { margin: 8px 18px 0; color: var(--ink-2); font-size: 13px; line-height: 1.5; max-width: 330px; }
 .center { display: flex; justify-content: center; margin-top: 72px; }
@@ -205,6 +217,11 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
   right: 0;
   width: 52%;
   height: 100%;
+  /* badges orbit in and out through soft edges rather than a hard crop */
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent), linear-gradient(to right, transparent, #000 12%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to bottom, transparent, #000 16%, #000 84%, transparent), linear-gradient(to right, transparent, #000 12%);
+  mask-composite: intersect;
 }
 
 /* ----------------------------------------------------------------- footer */
@@ -240,8 +257,10 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
 }
 
 /* ------------------------------------------------------------- responsive */
-@media (max-width: 900px) {
+@media (max-width: 980px) {
   .nav-links { display: none; }
+}
+@media (max-width: 900px) {
   .hero-stage { aspect-ratio: auto; display: flex; flex-direction: column; }
   :root { --gutter: 10px; }
   .hero-copy { position: static; order: -1; padding: 48px 16px 0; }
@@ -251,7 +270,7 @@ svg[data-scene]:not(.step-art) { overflow: hidden; }
   .step .step-art, .step.flip .step-art { order: -1; }
   .grid { grid-template-columns: 1fr; }
   .card, .card.wide { grid-column: auto; }
-  .band { grid-template-columns: 1fr; gap: 36px; }
+  .band { grid-template-columns: 1fr; margin-inline: 16px; }
   .cta { flex-direction: column; align-items: stretch; }
   .cta-art { position: relative; width: 100%; height: 300px; }
 }
