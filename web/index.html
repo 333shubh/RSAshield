@@ -23,14 +23,19 @@
         </svg>
         <span>RSAShield</span>
       </a>
-      <nav class="nav-links" aria-label="Primary">
-        <a href="#how">How it Works</a>
-        <a href="#detectors">Detectors</a>
-        <a href="#why">ICS Standards</a>
+      <nav class="nav-links" id="primary-nav" aria-label="Primary">
+        <a href="#how" aria-current="page">How it Works</a>
+        <a href="#detectors" aria-current="page">Detectors</a>
+        <a href="#why" aria-current="page">ICS Standards</a>
         <a href="dashboard.html">Dashboard</a>
         <a href="related-work.html">Related Work</a>
       </nav>
-      <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
+      <div class="nav-end">
+        <a class="btn btn-ghost btn-sm" href="dashboard.html">Audit a Key</a>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -39,7 +44,7 @@
     <section class="hero framed">
       <div class="frame">
         <div class="hero-stage">
-          <svg class="hero-art" data-scene="hero" viewBox="-560 -460 1120 700" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+          <svg class="hero-art" data-scene="hero" data-fixed viewBox="-600 -500 1200 810" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
           <div class="hero-copy">
             <h1 data-reveal>Turn Weak Keys<br>into Known Risks</h1>
             <p class="lead" data-reveal>Find shared primes, close primes, small factors and more &mdash; offline, with research-grade detectors and ICS-ready remediation.</p>
@@ -85,7 +90,7 @@
     <!-- examples -->
     <section class="examples framed" id="detectors">
       <div class="frame">
-        <h2 class="section-title" data-reveal>Examples of What You Can<br>Catch With RSAShield</h2>
+        <h2 class="section-title" data-reveal>Examples of What You Can <br>Catch With RSAShield</h2>
         <div class="grid" data-reveal>
           <article class="card">
             <h3>Shared Primes</h3>
@@ -119,20 +124,20 @@
     <!-- why -->
     <section class="why framed" id="why">
       <div class="frame">
-        <h2 class="section-title" data-reveal>Research-Grade Auditing,<br>100% Offline</h2>
+        <h2 class="section-title" data-reveal>Research-Grade Auditing, <br>100% Offline</h2>
         <div class="band" data-reveal>
           <article class="feat">
-            <svg data-scene="feat-honest" viewBox="-200 -90 400 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+            <svg data-scene="feat-honest" viewBox="-200 -110 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
             <h3>Never Says &ldquo;Secure&rdquo;</h3>
             <p>The strongest clean result is NO_DEFECT_FOUND &mdash; a bounded statement, never a proof. Absence of evidence is reported honestly.</p>
           </article>
           <article class="feat">
-            <svg data-scene="feat-ics" viewBox="-200 -90 400 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+            <svg data-scene="feat-ics" viewBox="-200 -110 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
             <h3>Built for Substations</h3>
             <p>Every finding maps to indicative IEC 62351, NERC CIP and NIST references, so it routes straight into your remediation process.</p>
           </article>
           <article class="feat">
-            <svg data-scene="feat-measured" viewBox="-200 -90 400 180" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+            <svg data-scene="feat-measured" viewBox="-200 -110 400 220" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
             <h3>Measured, Not Claimed</h3>
             <p>Precision, recall and F1 of 1.000 on a seeded benchmark, plus an ECM marginal-yield study you can reproduce.</p>
           </article>
@@ -154,7 +159,7 @@
           </div>
         </div>
       </div>
-      <svg class="cta-art" data-scene="orbit" viewBox="0 0 560 460" preserveAspectRatio="xMinYMid slice" aria-hidden="true"></svg>
+      <svg class="cta-art" data-scene="orbit" data-fixed viewBox="0 0 560 460" preserveAspectRatio="xMinYMid slice" aria-hidden="true"></svg>
     </section>
   </main>
 
@@ -169,11 +174,13 @@
         <span>RSAShield</span>
       </a>
       <nav class="footer-links" aria-label="Documentation">
+        <a href="index.html">Overview</a>
         <a href="dashboard.html">Dashboard</a>
         <a href="related-work.html">Related work</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/THREAT_MODEL.md">Threat model</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/RESEARCH_PLAN.md">Research plan</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/ICS_REMEDIATION.md">ICS remediation</a>
+        <a href="https://github.com/333shubh/RSAshield">GitHub</a>
       </nav>
       <p class="fine">&copy;<span data-year>2026</span> RSAShield. Synthetic keys and authorised data only.</p>
     </div>

@@ -24,13 +24,19 @@
         </svg>
         <span>RSAShield</span>
       </a>
-      <nav class="nav-links" aria-label="Primary">
-        <a href="index.html">Overview</a>
+      <nav class="nav-links" id="primary-nav" aria-label="Primary">
+        <a href="index.html#how">How it Works</a>
+        <a href="index.html#detectors">Detectors</a>
+        <a href="index.html#why">ICS Standards</a>
         <a href="dashboard.html" aria-current="page">Dashboard</a>
-        <a href="#bundle">Research Bundle</a>
         <a href="related-work.html">Related Work</a>
       </nav>
-      <span class="status" id="status" role="status"><span class="dot"></span><span class="status-text">Connecting…</span></span>
+      <div class="nav-end">
+        <span class="status" id="status" role="status"><span class="dot"></span><span class="status-text">Connecting…</span></span>
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="primary-nav" aria-label="Open menu">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 6h14M3 10h14M3 14h14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -57,7 +63,7 @@
       </div>
     </div>
 
-    <section class="workspace framed">
+    <section class="workspace framed surface">
       <div class="frame">
         <div class="ws-grid">
           <!-- input -->
@@ -114,9 +120,9 @@
         </div>
         <div class="batch-result" id="batchResult" hidden></div>
         <div class="table-wrap" data-reveal>
-          <table class="keys">
+          <table class="keys stack">
             <thead>
-              <tr><th scope="col">#</th><th scope="col">Key</th><th scope="col">Bits</th><th scope="col">Classification</th><th scope="col" class="num">Risk</th><th scope="col">Failure modes</th></tr>
+              <tr><th scope="col">#</th><th scope="col">Key</th><th scope="col">Bits</th><th scope="col">Classification</th><th scope="col" class="num">Risk</th><th scope="col" data-short="Modes">Failure modes</th></tr>
             </thead>
             <tbody id="keysBody">
               <tr class="placeholder"><td colspan="6">No keys stored yet.</td></tr>
@@ -127,7 +133,7 @@
     </section>
 
     <!-- research bundle -->
-    <section class="bundle framed" id="bundle">
+    <section class="bundle framed surface" id="bundle">
       <div class="frame">
         <div class="section-head" data-reveal>
           <div>
@@ -158,9 +164,12 @@
       </a>
       <nav class="footer-links" aria-label="Documentation">
         <a href="index.html">Overview</a>
+        <a href="dashboard.html">Dashboard</a>
         <a href="related-work.html">Related work</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/THREAT_MODEL.md">Threat model</a>
+        <a href="https://github.com/333shubh/RSAshield/blob/main/docs/RESEARCH_PLAN.md">Research plan</a>
         <a href="https://github.com/333shubh/RSAshield/blob/main/docs/ICS_REMEDIATION.md">ICS remediation</a>
+        <a href="https://github.com/333shubh/RSAshield">GitHub</a>
       </nav>
       <p class="fine">&copy;<span data-year>2026</span> RSAShield. Synthetic keys and authorised data only.</p>
     </div>

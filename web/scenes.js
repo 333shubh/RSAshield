@@ -78,7 +78,6 @@
   function hero(svg) {
     const g = el('g', {}, svg);
     el('ellipse', { cx: 0, cy: -24, rx: 260, ry: 160, fill: 'url(#iso-glow)', class: 'pulse' }, g);
-    el('rect', { x: -432, y: -150, width: 14, height: 30, rx: 7, fill: '#8ea7f8', opacity: 0.55, filter: 'url(#iso-blur)' }, g);
 
     // the rail the output cards ride along
     slab(g, 'top', 0, -330, 0, rrect(-250, -58, 500, 116, 30), 0, { face: 'url(#iso-rail)' });
@@ -156,7 +155,7 @@
 
     // incoming key material
     const tiles = [
-      { p: [-556, 20], s: 34, i: 'net' },
+      { p: [-520, 26], s: 34, i: 'net' },
       { p: [-458, 44], s: 46, i: 'cert', stand: true },
       { p: [-372, 36], s: 42, i: 'pem', ghost: true },
       { p: [-272, 52], s: 36, i: 'pem' },
@@ -175,7 +174,7 @@
 
     // phones: frame the hub and its nearest tiles rather than shrinking the whole scene
     const narrow = window.matchMedia('(max-width: 900px)');
-    const fit = () => svg.setAttribute('viewBox', narrow.matches ? '-330 -330 700 560' : '-560 -460 1120 700');
+    const fit = () => svg.setAttribute('viewBox', narrow.matches ? '-380 -335 840 620' : '-600 -500 1200 810');
     fit();
     narrow.addEventListener('change', fit);
   }
@@ -334,7 +333,7 @@
 
   function exWiener(svg) {
     const g = el('g', {}, svg);
-    const lines = el('g', { stroke: '#c8cee2', 'stroke-dasharray': '3 4', fill: 'none' }, g);
+    const lines = el('g', { stroke: '#c8cee2', 'stroke-dasharray': '3 4', fill: 'none', 'data-bleed': '' }, g);
     const line = (a, b) => {
       const [x1, y1] = P(...a);
       const [x2, y2] = P(...b);
@@ -390,7 +389,7 @@
     el('path', { d: 'M-128 6 C-110 30 -90 34 -70 30', fill: 'none', stroke: '#7d92ea', 'stroke-dasharray': '3 3' }, g);
     const card = panelAt(wrap(g, 'hover', 0), -168, -32, 46, 56, 4, WHITE).on();
     el('circle', { cx: 23, cy: 20, r: 9, fill: 'none', stroke: '#3d6cf4', 'stroke-width': 2 }, card);
-    text(card, 'e = 3', { x: 23, y: 43, size: 8, fill: '#11152e', weight: 600 });
+    text(card, 'e = 1', { x: 23, y: 43, size: 8, fill: '#11152e', weight: 600 });
     text(card, 'e', { x: 23, y: 23.5, size: 10, fill: '#3d6cf4', family: SERIF, style: 'italic' });
 
     const chat = el('g', { transform: 'translate(112 70)' }, wrap(g, 'bob', -1.2));
@@ -402,8 +401,8 @@
   function featHonest(svg) {
     const g = el('g', {}, svg);
     const [x, y] = W(-70, 70);
-    slab(g, 'top', x, y, 0, rrect(-170, -170, 340, 340, 30), 0, { face: 'url(#iso-blue)' });
-    slab(g, 'top', x, y, 0, rrect(-120, -120, 240, 240, 24), 0, { stroke: 'rgba(255,255,255,.5)', dash: '4 4' });
+    slab(g, 'top', x, y, 0, rrect(-170, -170, 340, 340, 30), 0, { face: 'url(#iso-blue)' }).g.setAttribute('data-bleed', '');
+    slab(g, 'top', x, y, 0, rrect(-120, -120, 240, 240, 24), 0, { stroke: 'rgba(255,255,255,.5)', dash: '4 4' }).g.setAttribute('data-bleed', '');
     const [px, py] = W(60, 34);
     slab(g, 'top', px, py, 0, circle(0, 0, 40), 14, WHITE);
     slab(g, 'top', px, py, 14, circle(0, 0, 30), 6, { face: '#eef1ff', side: '#dfe5fd', stroke: '#c9d2f2' });
@@ -416,7 +415,7 @@
 
   function featICS(svg) {
     const g = el('g', {}, svg);
-    const grid = el('g', { stroke: '#d6dbee', 'stroke-dasharray': '3 3', fill: 'none' }, g);
+    const grid = el('g', { stroke: '#d6dbee', 'stroke-dasharray': '3 3', fill: 'none', 'data-bleed': '' }, g);
     for (let k = -8; k <= 8; k++) {
       const a = P(k * 34, -400);
       const b = P(k * 34, 400);
@@ -442,7 +441,8 @@
   function featMeasured(svg) {
     const g = el('g', {}, svg);
     const [x, y] = W(-6, -30);
-    const panel = slab(g, 'right', x, y, 0, rrect(0, 0, 260, 200, 10), 0, { face: 'url(#iso-blue)' }).on();
+    slab(g, 'right', x, y, 0, rrect(0, 0, 260, 200, 10), 0, { face: 'url(#iso-blue)' }).g.setAttribute('data-bleed', '');
+    const panel = el('g', { transform: frame('right', x, y, 0).matrix() }, g);
     [['Precision', '1.000'], ['Recall', '1.000'], ['F1', '1.000']].forEach(([k, v], i) => {
       const yy = 22 + i * 26;
       el('rect', { x: 22, y: yy, width: 118, height: 18, rx: 4, fill: 'none', stroke: 'rgba(255,255,255,.6)' }, panel);
@@ -524,9 +524,33 @@
     orbit,
   };
 
+  /*
+   * Re-frame a scene around what it actually drew, keeping the authored aspect
+   * ratio so cards in a row stay the same height. Elements marked data-bleed
+   * (backdrops, grids, guide lines) are meant to run off the edge and are left
+   * out of the measurement. The padding leaves room for the bob/hover motion.
+   */
+  function fit(svg) {
+    const [, , vw, vh] = svg.getAttribute('viewBox').split(/[\s,]+/).map(Number);
+    const bleed = [...svg.querySelectorAll('[data-bleed]')];
+    bleed.forEach((n) => n.setAttribute('display', 'none'));
+    const b = svg.firstElementChild.getBBox();
+    bleed.forEach((n) => n.removeAttribute('display'));
+    if (!b.width || !b.height) return;
+    const pad = 0.07 * Math.max(b.width, b.height) + 10;
+    const aspect = vw / vh;
+    const w = Math.max(b.width + 2 * pad, (b.height + 2 * pad) * aspect);
+    const h = w / aspect;
+    const x = b.x + b.width / 2 - w / 2;
+    const y = b.y + b.height / 2 - h / 2;
+    svg.setAttribute('viewBox', [x, y, w, h].map((v) => v.toFixed(1)).join(' '));
+  }
+
   ISO.defs();
   document.querySelectorAll('svg[data-scene]').forEach((svg) => {
     const build = SCENES[svg.dataset.scene];
-    if (build) build(svg);
+    if (!build) return;
+    build(svg);
+    if (!('fixed' in svg.dataset)) fit(svg);
   });
 })();
